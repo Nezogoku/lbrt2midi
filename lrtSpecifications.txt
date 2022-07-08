@@ -1,0 +1,43 @@
+HEADER 0x24
+    LBRT 0x00
+    Offset of sequence data 0x04
+    Note type (Time signature numerator) 0x08
+    Speed of note type 0x0C
+        BPM = speed/note
+    Number of tracks or version of sequence (?) 0x10
+    Unknown 0x14
+    Unknown 0x18
+    Number of events 0x1C
+    Number of segment changes 0x20
+
+Segment changes 0x04
+    Event ID (When sequence hops to the next segment) 0x00
+
+EVENT 0x1C
+    Event ID (0x00 is Start and End of track) 0x00
+    Delta time 0x04
+    Event Value Tempo (Likely corresponding to tempo change) 0x08
+        Microseconds per quarter note
+        Tempo = 60000000/MPQn
+        
+        Likely treated like duration for non loop events
+    Event value Loop (Likely corresponding to loop flags) 0x0C
+    Unknown 0x0E
+    Unknown 0x10
+    Event value Type (Likely corresponding to event type) 0x12
+    Event value 0 (Likely corresponding to event value 1) 0x14
+    Event value 1 (Likely corresponding to event value 2) 0x16
+    Event value X (Likely corresponding to event value X) 0x18
+    Status byte 0x19
+        0x00 (Running status?)
+        0x9X NoteNum Velocity (Note on)
+        0xBX ControlNum Value (Controller)
+            0x00 (Bank select MSB)
+            0x63 (NRPN Parameter MSB)
+                0x14 (Loop start)
+                0x1E (Loop end)
+        0xFX Value, X always F (Meta event)
+            0x2F (End of track)
+            0x51 (Change tempo)
+    Default event value 0 0x1A
+    Default event value 1 0x1B
