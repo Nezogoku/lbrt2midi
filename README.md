@@ -4,4 +4,5 @@ A small program that converts Patapon lrt files to midi files. Also converts sgd
 Requires gocha's SF2cute library.
 
 Borrowed code from John Walker (csvmidi) and jmarti856 (decode) with some minor changes.
-Heavily inspired by owocek's LBRPlayer.
+
+Heavily inspired by owocek's LBRTPlayer.
