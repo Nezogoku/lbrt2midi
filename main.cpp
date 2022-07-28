@@ -299,7 +299,7 @@ int writeLRT(string &lrt_file) {
                                                    vector<char>{event_note}));
             }
         }
-        else if ((status_byte & 0xF0) == 0xFF) {                // Meta event
+        else if ((status_byte & 0xF0) == 0xF0) {                // Meta event
             if (event_type == 0x2F) {                           // End of track
                 if (debug) cout << "END OF TRACK" << endl;
                 //lrtSequence.push_back(0x00);
