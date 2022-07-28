@@ -8,3 +8,6 @@ Requires gocha's SF2cute library to build.
 Borrowed code from jmarti856 (decode) with some minor changes.
 
 Heavily inspired by owocek's LBRTPlayer.
+
+Have to pin down where volume of played notes are stored (trial and error it out).
+Also have to figure out how I managed to get the proper timing during one of my private revisions (I forgot...)
