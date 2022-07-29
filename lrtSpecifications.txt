@@ -10,8 +10,8 @@ HEADER 0x24
     Number of segment changes 0x20
         seems to be quarter notes
 
-Segment changes 0x04
-    Event ID (When sequence hops to the next segment) 0x00
+SEGMENT CHANGES 0x04
+    Event ID (When sequence jumps to the next segment) 0x00
 
 EVENT 0x1C
     Event ID (0x00 is Start and End of track) 0x00
@@ -20,22 +20,18 @@ EVENT 0x1C
         Microseconds per quarter note
         Tempo = 60000000/MPQn
         Likely treated like duration for non loop events?
-        
     Event byte 1 (Corresponds to Channel events?) 0x0C
-    Unknown 0x0E
-    Unknown 0x10
+    Unknown (Maybe NULL?) 0x10
     Event value Type (Likely corresponding to event type) 0x12
         Meta and channel events (not including note on/off I guess)
-        
     Event value 0 (Likely corresponding to event value 1) 0x14
         Note on/off velocity?
-        
     Event value 1 (Likely corresponding to event value 2) 0x16
         Might correspond to panning of note on/off event
-        
-    Event value X (Likely corresponding to event value X) 0x18
+    Event status (Likely corresponding to status of event) 0x18
         Channel events only maybe?
-        
+            Could correspond to program number in SGD
+            Could also correspond to control type
     Status byte 0x19
         0x00 (Running status?)
         0x9X <NoteNum Velocity> (Note on)
@@ -47,6 +43,5 @@ EVENT 0x1C
         0xFX Value (Meta event)
             0xFF 0x2F (End of track)
             0xFF 0x51 <size newTempo> (Change tempo)
-            
-    Adjusted(?) event value 0 0x1A
-    Adjusted(?) event value 1 0x1B
+    default(?) event value 0 0x1A
+    default(?) event value 1 0x1B
