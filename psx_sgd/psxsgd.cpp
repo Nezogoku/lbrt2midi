@@ -366,28 +366,28 @@ void sgd::setRGND(std::ifstream &tmpData) {
 
         tmpData.seekg(working_offset + 0x1D);
         tmpData.read((char*)(&tempRgnd.rate_attack), sizeof(uint8_t));
-        tempRgnd.rate_attack *= 0x10;
-        if (isDebug) cout << "Attack rate: " << int(tempRgnd.rate_attack) << endl;
+        //tempRgnd.rate_attack *= 0x10;
+        if (isDebug) cout << "Attack rate: " << int(tempRgnd.rate_attack) * 0x10 << endl;
 
         tmpData.seekg(working_offset + 0x20);
         tmpData.read((char*)(&tempRgnd.rate_hold), sizeof(uint8_t));
-        tempRgnd.rate_hold *= 0x10;
-        if (isDebug) cout << "Hold rate: " << int(tempRgnd.rate_hold) << endl;
+        //tempRgnd.rate_hold *= 0x10;
+        if (isDebug) cout << "Hold rate: " << int(tempRgnd.rate_hold) * 0x10 << endl;
 
         tmpData.seekg(working_offset + 0x21);
         tmpData.read((char*)(&tempRgnd.rate_sustain), sizeof(uint8_t));
-        tempRgnd.rate_sustain *= 0x10;
-        if (isDebug) cout << "Sustain rate: " << int(tempRgnd.rate_sustain) << endl;
+        //tempRgnd.rate_sustain *= 0x10;
+        if (isDebug) cout << "Sustain rate: " << int(tempRgnd.rate_sustain) * 0x10 << endl;
 
         tmpData.seekg(working_offset + 0x22);
         tmpData.read((char*)(&tempRgnd.rate_release), sizeof(uint8_t));
-        tempRgnd.rate_release *= 0x10;
-        if (isDebug) cout << "Release rate: " << int(tempRgnd.rate_release) << endl;
+        //tempRgnd.rate_release *= 0x10;
+        if (isDebug) cout << "Release rate: " << int(tempRgnd.rate_release) * 0x10 << endl;
 
         tmpData.seekg(working_offset + 0x23);
         tmpData.read((char*)(&tempRgnd.pan), sizeof(uint8_t));
-        tempRgnd.pan *= 0x10;
-        if (isDebug) cout << "Pan: " << int(tempRgnd.pan) << endl;
+        //tempRgnd.pan *= 0x10;
+        if (isDebug) cout << "Pan: " << int(tempRgnd.pan) * 0x10 << endl;
 
         tmpData.seekg(working_offset + 0x34);
         tmpData.read((char*)(&tempRgnd.sample_id), sizeof(uint32_t));
