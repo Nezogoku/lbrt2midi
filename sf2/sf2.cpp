@@ -101,11 +101,11 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
         uint8_t sampRoot = pataSGD.getSampleRoot(i),
                 lowRange = pataSGD.getSampleLow(i),
                 highRange = pataSGD.getSampleHigh(i);
-        int    //sampAttack = pataSGD.getSampleAttack(i),
-               sampHold = pataSGD.getSampleHold(i) * 10,
-               //sampSustain = pataSGD.getSampleSustain(i),
-               sampRelease = pataSGD.getSampleRelease(i) * 10,
-               sampPan = pataSGD.getSamplePan(i) * 10;
+        int    //sampAttack = pataSGD.getSampleAttack(i) * 16,
+               sampHold = pataSGD.getSampleHold(i) * 16,
+               //sampSustain = pataSGD.getSampleSustain(i) * 16,
+               sampRelease = pataSGD.getSampleRelease(i) * 16,
+               sampPan = pataSGD.getSamplePan(i) * 16;
         uint16_t isLoop = (pataSGD.sampleIsLoop(sampID)) ?
                            uint16_t(SampleMode::kLoopContinuously) :
                            uint16_t(SampleMode::kNoLoop);
