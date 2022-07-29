@@ -43,7 +43,7 @@ struct lbrt_status {
 
 void printOpt(string pName) {
     if (debug) cerr << "Not enough valid files entered\n" << endl;
-    cout << "Usage: " << pName << " [options] [<infile.sgd>] <infile(s).lrt>\n"
+    cout << "Usage: " << pName << " [options] [<infile(s).sgd>] [<infile(s).lrt>]\n"
          << "\nOptions:\n"
          << "\t-h       Prints this message\n"
          << "\t-d       Activates and deactivates debug mode\n"
@@ -148,18 +148,19 @@ int writeLRT(string &lrt_file) {
     uint32_t entry_offset,
              event_id,
              deltatime,
-             event_val_tempo;
-    uint16_t event_note,
-             event_type,
+             event_val_tempo,
+             event_chan_val_0;
+    uint16_t event_type,
              event_val_0,
              event_val_1;
     uint8_t  event_status,
              status_byte,
-             event_adjust_val_0,
-             event_adjust_val_1;
+             event_default_val_0,
+             event_default_val_1;
 
     int curr_entry = 0,
-        divi_id = 0;
+        addDelta = 0,
+        quart_note = 0;
 
     //Set sequence name
     lbrtSequence.push_back(lbrt_status(0, 0x00,
@@ -185,14 +186,17 @@ int writeLRT(string &lrt_file) {
         lbrt_file.seekg(entry_offset + 0x04);
         lbrt_file.read((char*)(&deltatime), sizeof(uint32_t));
         if (debug) cout << "Current delta time: " << deltatime << "ms" << endl;
+        deltatime += addDelta;
+        if (debug) cout << "Current total delta time: " << deltatime << "ms" << endl;
+        addDelta = 0;
 
         lbrt_file.seekg(entry_offset + 0x08);
         lbrt_file.read((char*)(&event_val_tempo), sizeof(uint32_t));
         if (debug) cout << "Current tempo value: " << event_val_tempo << endl;
 
         lbrt_file.seekg(entry_offset + 0x0C);
-        lbrt_file.read((char*)(&event_note), sizeof(uint16_t));
-        if (debug) cout << "Current note value: " << event_note << endl;
+        lbrt_file.read((char*)(&event_chan_val_0), sizeof(uint32_t));
+        if (debug) cout << "Current channel value 1: " << event_chan_val_0 << endl;
 
         lbrt_file.seekg(entry_offset + 0x12);
         lbrt_file.read((char*)(&event_type), sizeof(uint16_t));
@@ -215,32 +219,33 @@ int writeLRT(string &lrt_file) {
         if (debug) cout << "Current status byte: 0x" << hex << int(status_byte) << dec << endl;
 
         lbrt_file.seekg(entry_offset + 0x1A);
-        lbrt_file.read((char*)(&event_adjust_val_0), sizeof(uint8_t));
-        if (debug) cout << "Current adjusted event value 1: " << int(event_adjust_val_0) << endl;
+        lbrt_file.read((char*)(&event_default_val_0), sizeof(uint8_t));
+        if (debug) cout << "Current default event value 1: " << int(event_default_val_0) << endl;
 
         lbrt_file.seekg(entry_offset + 0x1B);
-        lbrt_file.read((char*)(&event_adjust_val_1), sizeof(uint8_t));
-        if (debug) cout << "Current adjusted event value 2: " << int(event_adjust_val_1) << endl;
+        lbrt_file.read((char*)(&event_default_val_1), sizeof(uint8_t));
+        if (debug) cout << "Current default event value 2: " << int(event_default_val_1) << endl;
 
 
         //Next sequence chunk has been reached
         if (curr_entry < change_ids.size() && i == change_ids[curr_entry]) {
             if (debug) cout << "NEXT SEQUENCE CHUNK" << endl;
 
-            //Only turn off notes if divi_id is 4
-            //One quarter note after a previous measure
-            if (divi_id == 4) {
+            //Silence all notes every two measures
+            //Assume like Patapon 3
+            if (quart_note % 8 == 0) {
+
                 //Temporarily store played notes
                 vector<lbrt_status> usedNotes;
 
                 for (auto &event : lbrtSequence) {
-                    if ((event.quarter_note_id == (event_id - 1)) &&
+                    if ((event.quarter_note_id >= (event_id - 7)) &&
                        ((event.status_a & 0xF0) == 0x90) &&
                         (event.values[0] > 0x00)) {
 
                         usedNotes.push_back(event);
-                        usedNotes[usedNotes.size() - 1].values[0] = 0x00;
                         usedNotes[usedNotes.size() - 1].delta_t = deltatime;
+                        usedNotes[usedNotes.size() - 1].values[0] = 0x00;
                         deltatime = 0x00;
                     }
                 }
@@ -260,12 +265,9 @@ int writeLRT(string &lrt_file) {
                                                    [&](const auto &event) {return (event.status_a == status) && (event.status_b == note);}),
                                                    usedNotes.end());
                 }
-
-                //Reset id counter to 0 for reasons
-                divi_id = 0;
             }
 
-            divi_id += 1;
+            quart_note += 1;
             curr_entry += 1;
             //continue;
             //DO NOT SKIP!!! WHAT WAS I THINKING???!1!111111!
@@ -278,12 +280,12 @@ int writeLRT(string &lrt_file) {
 
                 //Sequence uses CC 99 for looping
                 //Will use CC 116/117 instead
-                if (event_note == 0x14) {                       // Start loop
+                if (event_chan_val_0 == 0x14) {                 // Start loop
                     //Use CC 116 as loop start (EMIDI/XMI style)
                     //0x00 is infinite loop, 0x01-0xFF is finite looping
                     second_byte = 0x00;
                 }
-                else if (event_note == 0x1E) {                  // End loop
+                else if (event_chan_val_0 == 0x1E) {            // End loop
                     //Use CC 117 as loop end (EMIDI/XMI style)
                     //Always 0xFF
                     second_byte = 0xFF;
@@ -296,13 +298,12 @@ int writeLRT(string &lrt_file) {
             else {                                              // Any controller event
                 lbrtSequence.push_back(lbrt_status(event_id, deltatime,
                                                    status_byte, event_type,
-                                                   vector<char>{event_note}));
+                                                   vector<char>{event_chan_val_0}));
             }
         }
         else if ((status_byte & 0xF0) == 0xF0) {                // Meta event
             if (event_type == 0x2F) {                           // End of track
                 if (debug) cout << "END OF TRACK" << endl;
-                //lrtSequence.push_back(0x00);
                 lbrtSequence.push_back(lbrt_status(event_id, deltatime,
                                                    status_byte, event_type,
                                                    vector<char>{}));
@@ -321,47 +322,40 @@ int writeLRT(string &lrt_file) {
             if (debug) cout << "NOTE EVENT" << endl;
             if (debug) cout << "\tCurrent entry offset: 0x" << hex << entry_offset << dec << endl;
             if (debug) cout << "\tCurrent channel ID: " << int(event_status) << endl;
-            if (debug) cout << "\tCurrent pitch: " << event_note << endl;
+            if (debug) cout << "\tCurrent pitch: " << event_chan_val_0 << endl;
 
-
-            /*
-            //Silence note if being played
+            //Silence note if on
             for (int i = lbrtSequence.size() - 1; i >= 0; --i) {
-                if ((lbrtSequence[i].quarter_note_id == event_id) &&
-                    (lbrtSequence[i].status_a == status_byte)) {
+                if (lbrtSequence[i].quarter_note_id == event_id &&
+                    lbrtSequence[i].status_a == status_byte &&
+                    lbrtSequence[i].status_b == event_chan_val_0) {
 
                     if (lbrtSequence[i].values[0] > 0x00) {
-                        lbrtSequence.push_back(lbrtSequence[i]);
-                        lbrtSequence[lbrtSequence.size() - 1].values[0] = 0x00;
-                        lbrtSequence[lbrtSequence.size() - 1].delta_t = deltatime;
-                        deltatime = 0x00;
-                        break;
+                        lbrtSequence.push_back(lbrt_status(event_id, deltatime,
+                                                           status_byte, event_chan_val_0,
+                                                           vector<char>{0x00}));
+                    deltatime = 0x00;
                     }
                     else break;
                 }
             }
-            */
 
             //Play note
             //Value of zero also releases note
             lbrtSequence.push_back(lbrt_status(event_id, deltatime,
-                                               status_byte, event_note,
-                                               vector<char>{event_adjust_val_1}));
+                                               status_byte, event_chan_val_0,
+                                               vector<char>{event_val_0}));
 
-            /*
-            //Adjust pan
+            //Adjust channel volume
             lbrtSequence.push_back(lbrt_status(event_id, 0x00,
-                                               0xB0 | event_status, 0x0A,
-                                               vector<char>{event_val_1}));
-            */
+                                               0xB0 | event_status, 0x07,
+                                               vector<char>{event_default_val_1}));
         }
         else {                                                  // Running status?
-            if (debug) cout << "RUNNING STATUS" << endl;
+            if (debug) cout << "RUNNING STATUS" << endl;        // Technically a marker
             //Theoretically shouldn't do anything
             //Only occurs at quarter note mark
-            lbrtSequence.push_back(lbrt_status(event_id, deltatime,
-                                               0xFF, 0x07,
-                                               vector<char>{}));
+            addDelta = deltatime;
         }
     }
     lbrt_file.close();
@@ -447,11 +441,11 @@ int main(int argc, char *argv[]) {
     }
     else {
         string tempFile = "";
-        vector<string> lrtFile;
 
         for (int i = 1; i < argc; ++i) {
             tempFile = argv[i];
             tempFile.erase(std::remove(tempFile.begin(), tempFile.end(), '\"'), tempFile.end());
+            if (debug) cout << endl;
 
             if (tempFile == "-h") {
                 printOpt(prgm);
@@ -475,22 +469,13 @@ int main(int argc, char *argv[]) {
                 }
             }
             else if (!(tempFile.find_last_of("lrt") == string::npos) && !setInput("lrt", tempFile)) {
-                lrtFile.push_back(tempFile);
+                if (!writeLRT(tempFile)) {
+                    cerr << "Unable to convert LRT file to MID file" << endl;
+                }
+                else cout << "MID file was successfully saved" << endl;
                 continue;
             }
             else continue;
-        }
-        if (debug) cout << endl;
-
-        for (int i = 0; i < lrtFile.size(); ++i) {
-            if (debug) cout << endl;
-            if (!writeLRT(lrtFile[i])) {
-                cerr << "Unable to convert LRT file to MID file" << endl;
-                continue;
-            }
-
-            cout << "MID file was successfully saved" << endl;
-            if (debug) cout << endl;
         }
     }
 
