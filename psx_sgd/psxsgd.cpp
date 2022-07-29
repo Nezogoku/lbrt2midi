@@ -337,15 +337,18 @@ void sgd::setRGND(std::ifstream &tmpData) {
 
         if (isDebug) cout << endl;
         if (isDebug) cout << "Current offset: 0x" << hex << working_offset << dec << endl;
-        if (offsets[index] == working_offset) {
-            bank = 0x00;
-            preset = index++;
+        for (int index = 0; index < offsets.size(); ++index) {
+            if (offsets[index] == working_offset) {
+                bank = 0x00;
+                preset = index;
 
-            if (isDebug) cout << "Bank and Preset starting from program "
-                              << d << ": " << int(bank)
-                              << ' ' << int(preset)
-                              << endl;
+                if (isDebug) cout << "Bank and Preset starting from program "
+                                  << d << ": " << int(bank)
+                                  << ' ' << int(preset)
+                                  << endl;
+            }
         }
+
 
         ///Retrieving region info from vector
         tmpData.seekg(working_offset + 0x00);
