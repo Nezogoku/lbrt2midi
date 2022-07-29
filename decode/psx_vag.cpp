@@ -10,6 +10,8 @@ using std::min;
 using std::vector;
 
 
+//Based off of SonyVagDecoder found in es-ps2-vag-tool
+//By jmarti856
 std::vector<int16_t> vagDecode(char *vagData, uint32_t vagSize, uint32_t &loopStart, uint32_t &loopEnd) {
     vector<int16_t> wavData;
 
