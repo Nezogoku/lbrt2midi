@@ -37,105 +37,105 @@ TRACK, ??? Bytes
         Status byte, 1 byte
             0x8?, note off
                 One of 16 MIDI channels (0 to 15), 4 bits
-                The note affected (0 to 127), 1 byte
-                Velocity of realease (0 to 127), 1 byte
+                The note affected (0x00 to 0x7F), 1 byte
+                Velocity of realease (0x00 to 0x7F), 1 byte
             0x9?, note on
                 One of 16 MIDI channels (0 to 15), 4 bits
-                The note affected (0 to 127), 1 byte
-                Velocity of note (0 to 127), 1 byte
+                The note affected (0x00 to 0x7F), 1 byte
+                Velocity of note (0x00 to 0x7F), 1 byte
             0xA?, key pressure
                 One of 16 MIDI channels (0 to 15), 4 bits
-                The note affected (0 to 127), 1 byte
-                Pressure applied to note (0 to 127), 1 byte
+                The note affected (0x00 to 0x7F), 1 byte
+                Pressure applied to note (0x00 to 0x7F), 1 byte
             0xB?, controller
                 One of 16 MIDI channels (0 to 15), 4 bits
                 The controller affected, 1 byte
-                    0 - Bank select (coarse) (0 to 127)
-                    1 - Modulation wheel (coarse) (0 to 127)
-                    2 - Breath controller (coarse) (0 to 127)
+                    0x00 - Bank select (coarse) (0x00 to 0x7F)
+                    0x01 - Modulation wheel (coarse) (0x00 to 0x7F)
+                    0x02 - Breath controller (coarse) (0x00 to 0x7F)
                     
-                    4 - Foot controller (coarse) (0 to 127)
-                    5 - Portamento time (coarse) (0 to 127)
-                    6 - Data entry (coarse) (0 to 127)
-                    7 - Channel volume (coarse) (formerly main volume) (0 to 127)
-                    8 - Balance (coarse) (0 to 127)
+                    0x04 - Foot controller (coarse) (0x00 to 0x7F)
+                    0x05 - Portamento time (coarse) (0x00 to 0x7F)
+                    0x06 - Data entry (coarse) (0x00 to 0x7F)
+                    0x07 - Channel volume (coarse) (formerly main volume) (0x00 to 0x7F)
+                    0x08 - Balance (coarse) (0x00 to 0x7F)
                     
-                    10 - Pan (coarse) (0 to 127)
-                    11 - Expression (coarse)^2 (0 to 127)
-                    12 - Effect control 1 (coarse) (0 to 127)
-                    13 - Effect control 2 (coarse) (0 to 127)
+                    0x0A - Pan (coarse) (0x00 to 0x7F)
+                    0x0B - Expression (coarse)^2 (0x00 to 0x7F)
+                    0x0C - Effect control 1 (coarse) (0x00 to 0x7F)
+                    0x0D - Effect control 2 (coarse) (0x00 to 0x7F)
                     
-                    16 - General purpose controller 1 (coarse) (0 to 127)
-                    17 - General purpose controller 2 (coarse) (0 to 127)
-                    18 - General purpose controller 3 (coarse) (0 to 127)
-                    19 - General purpose controller 4 (coarse) (0 to 127)
+                    0x10 - General purpose controller 1 (coarse) (0x00 to 0x7F)
+                    0x11 - General purpose controller 2 (coarse) (0x00 to 0x7F)
+                    0x12 - General purpose controller 3 (coarse) (0x00 to 0x7F)
+                    0x13 - General purpose controller 4 (coarse) (0x00 to 0x7F)
                     
-                    32 - Bank select (fine) (0 to 127)
-                    33 - Modulation wheel (fine) (0 to 127)
-                    34 - Breath controller (fine) (0 to 127)
+                    0x20 - Bank select (fine) (0x00 to 0x7F)
+                    0x21 - Modulation wheel (fine) (0x00 to 0x7F)
+                    0x22 - Breath controller (fine) (0x00 to 0x7F)
                     
-                    36 - Foot controller (fine) (0 to 127)
-                    37 - Portamento time (fine) (0 to 127)
-                    38 - Data entry (fine) (0 to 127)
-                    39 - Channel volume (fine) (formerly main volume) (0 to 127)
-                    40 - Balance (fine) (0 to 127)
+                    0x24 - Foot controller (fine) (0x00 to 0x7F)
+                    0x25 - Portamento time (fine) (0x00 to 0x7F)
+                    0x26 - Data entry (fine) (0x00 to 0x7F)
+                    0x27 - Channel volume (fine) (0x00 to 0x7F)
+                    0x28 - Balance (fine) (0x00 to 0x7F)
                     
-                    42 - Pan (fine) (0 to 127)
-                    43 - Expression (fine)^2 (0 to 127)
-                    44 - Effect control 1 (fine) (0 to 127)
-                    45 - Effect control 2 (fine) (0 to 127)
+                    0x2A - Pan (fine) (0x00 to 0x7F)
+                    0x2B - Expression (fine) (0x00 to 0x7F)
+                    0x2C - Effect control 1 (fine) (0x00 to 0x7F)
+                    0x2D - Effect control 2 (fine) (0x00 to 0x7F)
                     
-                    64 - Hold (damper, sustain) pedal 1 (on/off) (64)
-                    65 - Portamento pedal (on/off) (64)
-                    66 - Sostenuto pedal (on/off) (64)
-                    67 - Soft pedal (on/off) (64)
-                    68 - legato pedal (on/off) (64)
-                    69 - Hold pedal 2 (on//off) (64)
-                    70 - Sound controller 1 (default is sound variation) (0 to 127)
-                    71 - Sound controller 2 (default is timbre / harmonic intensity / filter resonance) (0 to 127)
-                    72 - Sound controller 3 (default is release time) (0 to 127)
-                    73 - Sound controller 4 (default is attack time) (0 to 127)
-                    74 - Sound controller 5 (default is brightness or cutoff frequency) (0 to 127)
-                    75 - Sound controller 6 (default is decay time) (0 to 127)
-                    76 - Sound controller 7 (default is vibrato rate) (0 to 127)
-                    77 - Sound controller 8 (default is vibrato depth) (0 to 127)
-                    78 - Sound controller 9 (default is vibrato delay) (0 to 127)
-                    79 - Sound controller 10 (default is undefined) (0 to 127)
-                    80 - General purpose controller 5 (0 to 127)
-                    81 - General purpose controller 6 (0 to 127)
-                    82 - General purpose controller 7 (0 to 127)
-                    83 - General purpose controller 8 (0 to 127)
-                    84 - Portamento control (0 to 127)
+                    0x40 - Hold (damper, sustain) pedal 1 (on/off) (0x00_off < 0x40 <= 0x7F_on)
+                    0x41 - Portamento pedal (on/off) (0x00_off < 0x40 <= 0x7F_on)
+                    0x42 - Sostenuto pedal (on/off) (0x00_off < 0x40 <= 0x7F_on)
+                    0x43 - Soft pedal (on/off) (0x00_off < 0x40 <= 0x7F_on)
+                    0x44 - legato pedal (on/off) (0x00_off < 0x40 <= 0x7F_on)
+                    0x45 - Hold pedal 2 (on/off) (0x00_off < 0x40 <= 0x7F_on)
+                    0x46 - Sound controller 1 (default is sound variation) (0x00 to 0x7F)
+                    0x47 - Sound controller 2 (default is timbre / harmonic intensity / filter resonance) (0x00 to 0x7F)
+                    0x48 - Sound controller 3 (default is release time) (0x00 to 0x7F)
+                    0x49 - Sound controller 4 (default is attack time) (0x00 to 0x7F)
+                    0x4A - Sound controller 5 (default is brightness or cutoff frequency) (0x00 to 0x7F)
+                    0x4B - Sound controller 6 (default is decay time) (0x00 to 0x7F)
+                    0x4C - Sound controller 7 (default is vibrato rate) (0x00 to 0x7F)
+                    0x4D - Sound controller 8 (default is vibrato depth) (0x00 to 0x7F)
+                    0x4E - Sound controller 9 (default is vibrato delay) (0x00 to 0x7F)
+                    0x4F - Sound controller 10 (default is undefined) (0x00 to 0x7F)
+                    0x50 - General purpose controller 5 (0x00 to 0x7F)
+                    0x51 - General purpose controller 6 (0x00 to 0x7F)
+                    0x52 - General purpose controller 7 (0x00 to 0x7F)
+                    0x53 - General purpose controller 8 (0x00 to 0x7F)
+                    0x54 - Portamento control (0x00 to 0x7F)
                     
-                    88 - High resolution velocity prefix (0 to 127)
+                    0x58 - High resolution velocity prefix (0x00 to 0x7F)
                     
-                    91 - Effect 1 depth (default is reverb send level, formerly external effect depth) (0 to 127)
-                    92 - Effect 2 depth (formerly tremolo depth) (0 to 127)
-                    93 - Effect 3 depth (default is chorus send level, formerly chorus depth) (0 to 127)
-                    94 - Effect 4 depth (formerly celeste depth) (0 to 127)
-                    95 - Effect 5 depth (formerly phaser level) (0 to 127)
-                    96 - Data button increment
-                    97 - Data button decrement
-                    98 - Non-registered parameter (coarse) (0 to 127)
-                    99 - Non-registered parameter (fine) (0 to 127)
-                    100 - Registered parameter (coarse) (0 to 127)
-                    101 - Registered parameter (fine) (0 to 127)
+                    0x5B - Effect 1 depth (default is reverb send level, formerly external effect depth) (0x00 to 0x7F)
+                    0x5C - Effect 2 depth (formerly tremolo depth) (0x00 to 0x7F)
+                    0x5D - Effect 3 depth (default is chorus send level, formerly chorus depth) (0x00 to 0x7F)
+                    0x5E - Effect 4 depth (formerly celeste depth) (0x00 to 0x7F)
+                    0x5F - Effect 5 depth (formerly phaser level) (0x00 to 0x7F)
+                    0x60 - Data button increment
+                    0x61 - Data button decrement
+                    0x62 - Non-registered parameter (coarse) (0x00 to 0x7F)
+                    0x63 - Non-registered parameter (fine) (0x00 to 0x7F)
+                    0x64 - Registered parameter (coarse) (0x00 to 0x7F)
+                    0x65 - Registered parameter (fine) (0x00 to 0x7F)
                     
-                    120 - All sound off (0)
-                    121 - All controllers off (0)
-                    122 - Local control (on/off) (0 or 127)
-                    123 - All notes off (0)
-                    124 - Omni mode off (0)
-                    125 - Omni mode on (0)
-                    126 - Mono operation and all notes off
-                    127 - Poly operation and all notes off (0)
-                Value applied to controller (0 to 127), 1 byte
+                    0x78 - All sound off (0x00)
+                    0x79 - All controllers off (0x00)
+                    0x7A - Local control (on/off) (0x00 or 0x7F)
+                    0x7B - All notes off (0x00)
+                    0x7C - Omni mode off (0x00)
+                    0x7D - Omni mode on (0x00)
+                    0x7E - Mono operation and all notes off (0x00 to Number of channels)
+                    0x7F - Poly operation and all notes off (0x00)
+                Value applied to controller (0x00 to 0x7F), 1 byte
             0xC?, programme change
                 One of 16 MIDI channels (0 to 15), 4 bits
-                The programme selected (0 to 127), 1 byte
+                The programme selected (0x00 to 0x7F), 1 byte
             0xD?, channel pressure
                 One of 16 MIDI channels (0 to 15), 4 bits
-                Pressure applied (0 to 127), 1 byte
+                Pressure applied (0x00 to 0x7F), 1 byte
             0xE?, pitch change
                 One of 16 MIDI channels (0 to 15), 4 bits
                 New pitch (0x0000 to 0x3FFF), 2 byte
