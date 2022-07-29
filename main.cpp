@@ -346,10 +346,12 @@ int writeLRT(string &lrt_file) {
                                                status_byte, event_chan_val_0,
                                                vector<char>{event_val_0}));
 
+            /*
             //Adjust channel volume
             lbrtSequence.push_back(lbrt_status(event_id, 0x00,
                                                0xB0 | event_status, 0x07,
                                                vector<char>{event_default_val_1}));
+            */
         }
         else {                                                  // Running status?
             if (debug) cout << "RUNNING STATUS" << endl;        // Technically a marker
