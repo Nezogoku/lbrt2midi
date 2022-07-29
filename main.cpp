@@ -231,6 +231,7 @@ int writeLRT(string &lrt_file) {
         if (curr_entry < change_ids.size() && i == change_ids[curr_entry]) {
             if (debug) cout << "NEXT SEQUENCE CHUNK" << endl;
 
+            /* Nevermind, seems to work fine without this section
             //Silence all notes every two measures
             //Assume like Patapon 3
             if (quart_note % 8 == 0) {
@@ -239,7 +240,7 @@ int writeLRT(string &lrt_file) {
                 vector<lbrt_status> usedNotes;
 
                 for (auto &event : lbrtSequence) {
-                    if ((event.quarter_note_id >= (event_id - 7)) &&
+                    if ((event.quarter_note_id >= (event_id - 15)) &&
                        ((event.status_a & 0xF0) == 0x90) &&
                         (event.values[0] > 0x00)) {
 
@@ -266,6 +267,7 @@ int writeLRT(string &lrt_file) {
                                                    usedNotes.end());
                 }
             }
+            */
 
             quart_note += 1;
             curr_entry += 1;
