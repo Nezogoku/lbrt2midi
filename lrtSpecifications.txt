@@ -1,14 +1,19 @@
 HEADER 0x24
     LBRT 0x00
     Offset of sequence data 0x04
-    Note type (Time signature numerator) 0x08
+    Notated 32nd-notes per quarter note 0x08
     Pulses per quarter note 0x0C
-    Number of tracks or version of sequence (?) 0x10
-    Unknown 0x14
-    Unknown 0x18
+    Time signature denominator 0x10
+        Exponent of base 2
+        Denominator = 2 ^ (d_value)
+            1 is half-note
+            2 is quarter-note
+            3 is sixteenth-note...
+    MIDI format? (Usually NULL) 0x14
+    Unknown (Usually 256) 0x18
     Number of events 0x1C
     Number of segment changes 0x20
-        seems to be quarter notes
+        Seems to be quarter notes
 
 SEGMENT CHANGES 0x04
     Event ID (When sequence jumps to the next segment) 0x00
@@ -16,32 +21,46 @@ SEGMENT CHANGES 0x04
 EVENT 0x1C
     Event ID (0x00 is Start and End of track) 0x00
     Delta time 0x04
-    Event Value Tempo (Likely corresponding to tempo change) 0x08
         Microseconds per quarter note
-        Tempo = 60000000/MPQn
-        Likely treated like duration for non loop events?
-    Event byte 1 (Corresponds to Channel events?) 0x0C
+    Event time value 0x08
+        For tempo change:
+            Tempo = 60000000/t_value
+        For note on/off:
+            Duration of held note in microseconds
+        For running status:
+            Current tempo in microseconds
+    Event byte 0x0C
+        For control events:
+            Corresponding value
+        For note on/off:
+            Note pitch
     Unknown (Maybe NULL?) 0x10
-    Event value Type (Likely corresponding to event type) 0x12
-        Meta and channel events (not including note on/off I guess)
-    Event value 0 (Likely corresponding to event value 1) 0x14
-        Note on/off velocity?
-    Event value 1 (Likely corresponding to event value 2) 0x16
-        Might correspond to panning of note on/off event
+    Event value Type 0x12
+        For meta events:
+            Corresponding meta event type
+        For control events:
+            Corresponding control type
+        For note on/off:
+            Corresponding program in SGD
+    Event value 0 (Likely corresponding to default event value 0) 0x14
+        Might be note pitch
+    Event value 1 (Likely corresponding to default event value 1) 0x16
+        Might be note velocity
     Event status (Likely corresponding to status of event) 0x18
-        Channel events only maybe?
-            Could correspond to program number in SGD
-            Could also correspond to control type
+        For channel events:
+            Corresponding channel
     Status byte 0x19
         0x00 (Running status?)
-        0x9X <NoteNum Velocity> (Note on)
+        0x9X <NoteNum Velocity> (Note on/off)
         0xBX <ControlNum Value> (Controller)
             0x00 (Bank select MSB)
             0x63 (NRPN Parameter MSB)
                 0x14 (Loop start)
                 0x1E (Loop end)
-        0xFX Value (Meta event)
-            0xFF 0x2F (End of track)
-            0xFF 0x51 <size newTempo> (Change tempo)
+        0xFF <Type Size Value> (Meta event)
+            0x2F <0x00> (End of track)
+            0x51 <0x03 newTempo> (Change tempo)
     default(?) event value 0 0x1A
+        Might be default note pitch
     default(?) event value 1 0x1B
+        Might be default note velocity
