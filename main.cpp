@@ -303,7 +303,7 @@ int writeLRT(string &lrt_file) {
             //Value of zero also releases note
             lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
                                                status_byte, event_chan_val,
-                                               vector<char>{event_val_1}));
+                                               vector<char>{event_val_0}));
 
             //Release note after specified time
             //Sort through events later
@@ -324,6 +324,10 @@ int writeLRT(string &lrt_file) {
     //At this point, the quarter note id's no longer matter
     //Do NOT mess with the terminator
     std::sort(lbrtSequence.begin(), lbrtSequence.end() - 1);
+
+    //Change all times over final time to final time
+    uint32_t fin_absol_t = lbrtSequence[lbrtSequence.size() - 1].absol_t;
+    for (auto &e : lbrtSequence) if (e.absol_t > fin_absol_t) e.absol_t = fin_absol_t;
 
     if (debug) cout << endl;
 
