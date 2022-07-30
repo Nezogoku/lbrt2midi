@@ -1,5 +1,5 @@
-#include <algorithm>    //For min(), max()
-#include <cmath>        //For round()
+#include <algorithm>    //For std::min(), std::max()
+#include <cmath>        //For std::round()
 #include <cstdint>      //For uintX_t, intX_t, INT16_MIN, INT16_MAX
 #include <vector>       //For std::vector
 #include "decode.hpp"
@@ -28,7 +28,7 @@ std::vector<int16_t> vagDecode(char *vagData, uint32_t vagSize, uint32_t &loopSt
 
         chunk vagChunk;
         //Get shift byte
-        vagChunk.shift = int8_t(decodingCoeff & 0xF);
+        vagChunk.shift = int8_t(decodingCoeff & 0x0F);
         //Get predicting byte
         vagChunk.predict = int8_t((decodingCoeff & 0xF0) >> 4);
         //Get flag byte
@@ -45,7 +45,7 @@ std::vector<int16_t> vagDecode(char *vagData, uint32_t vagSize, uint32_t &loopSt
 
         //Expand nibble to byte
         for (int b = 0; b < SAMPLE_BYTES; ++b) {
-            samples[b * 2] = vagChunk.data[b] & 0xF;
+            samples[b * 2] = vagChunk.data[b] & 0x0F;
             samples[(b * 2) + 1] = (vagChunk.data[b] & 0xF0) >> 4;
         }
 
