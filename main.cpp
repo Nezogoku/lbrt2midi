@@ -11,7 +11,7 @@
 #include "psx_sgd/psxsgd.hpp"
 
 // SF2cute library from gocha
-// Based off of codes in lbrt from owocek
+// Based off LBRPlayer from owocek
 //      Used for comparison stuffs
 // Base codes in decode from jmarti856 (I basically just changed the language it was written in)
 
