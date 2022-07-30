@@ -129,7 +129,7 @@ int writeLRT(string &lrt_file) {
 
     lbrt_file.seekg(0x10);
     lbrt_file.read((char*)(&note_type), sizeof(uint32_t));
-    if (debug) cout << "The time signature is 4/" << std::pow(2, note_type) << endl;
+    if (debug) cout << "The time signature is 2/" << std::pow(2, note_type) << endl;
 
     lbrt_file.seekg(0x14);
     lbrt_file.read((char*)(&format), sizeof(uint32_t));
@@ -177,7 +177,7 @@ int writeLRT(string &lrt_file) {
     //Set time signature
     lbrtSequence.push_back(lbrt_status(0, 0x00,
                                        0xFF, 0x58,
-                                       vector<char>{0x04, note_type, clocks, 0x08}));
+                                       vector<char>{0x02, note_type, clocks, 0x08}));
     //Set sequence events
     //BIG BRAIN move, skip the first event
     //It's setting up the initial tempo, but I'm going to pretend it doesn't exist
@@ -322,7 +322,8 @@ int writeLRT(string &lrt_file) {
 
     //Reorganize by absolute time
     //At this point, the quarter note id's no longer matter
-    std::sort(lbrtSequence.begin(), lbrtSequence.end());
+    //Do NOT mess with the terminator
+    std::sort(lbrtSequence.begin(), lbrtSequence.end() - 1);
 
     if (debug) cout << endl;
 
@@ -411,16 +412,12 @@ int main(int argc, char *argv[]) {
 
 
             if (!(tempFile.find_last_of("sgd") == string::npos) && !setInput("sgd", tempFile)) {
-                if (setSF2(tempFile, debug, true)) continue;
-                else {
-                    cerr << "Unable to set SF2" << endl;
-                    continue;
-                }
+                if (!setSF2(tempFile, debug, true)) cerr << "Unable to set SF2" << endl;
+                else cout << "SF2 file was successfully saved" << endl;
+                continue;
             }
             else if (!(tempFile.find_last_of("lrt") == string::npos) && !setInput("lrt", tempFile)) {
-                if (!writeLRT(tempFile)) {
-                    cerr << "Unable to convert LRT file to MID file" << endl;
-                }
+                if (!writeLRT(tempFile)) cerr << "Unable to convert LRT file to MID file" << endl;
                 else cout << "MID file was successfully saved" << endl;
                 continue;
             }
