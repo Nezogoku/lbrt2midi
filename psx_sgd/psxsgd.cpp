@@ -399,20 +399,6 @@ void sgd::setRGND(std::ifstream &tmpData) {
         tempRgnd.program.bank = bank;
         tempRgnd.program.preset = preset;
 
-        for (auto &prgm : rgndBank) {
-            if (prgm.program.bank == tempRgnd.program.bank &&
-                prgm.program.preset == tempRgnd.program.preset &&
-                prgm.sample_id == tempRgnd.sample_id &&
-                std::abs(prgm.pan) == std::abs(tempRgnd.pan) &&
-                prgm.range_low == tempRgnd.range_low &&
-                prgm.range_high == tempRgnd.range_high &&
-                prgm.root_key != tempRgnd.root_key) {
-
-                tempRgnd.root_key = prgm.root_key;
-                break;
-            }
-        }
-
         rgndBank[d] = tempRgnd;
     }
 
