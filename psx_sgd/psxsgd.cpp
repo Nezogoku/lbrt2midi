@@ -477,6 +477,7 @@ void sgd::setSEQD(std::ifstream &tmpData) {
 
             //Sequence uses CC 99 for looping
             //Will use CC 116/117 instead
+            //Additionally use Final Fantasy style just because
             for (int s = 0; s < tempSeqd.sequence.size(); ++s) {
                 int s0 = s,
                     s1 = s + 1,
@@ -489,14 +490,28 @@ void sgd::setSEQD(std::ifstream &tmpData) {
                 if ((tempSeqd.sequence[s0] & 0xF0) == 0xB0 &&
                     (tempSeqd.sequence[s1] & 0xFF) == 0x63) {
 
+                    auto pos = tempSeqd.sequence.begin() + s2 + 1;
+                    vector<char> ffStyle = {char(0x00), char(0xFF), char(0x06)};
+                    string ffMark;
+
                     if ((tempSeqd.sequence[s2] & 0xFF) == 0x14) {
                         tempSeqd.sequence[s1] = 0x74;
                         tempSeqd.sequence[s2] = 0x00;
+
+                        ffMark = "loopStart";
                     }
                     else if ((tempSeqd.sequence[s2] & 0xFF) == 0x1E) {
                         tempSeqd.sequence[s1] = 0x75;
                         tempSeqd.sequence[s2] = 0x7F;
+
+                        ffMark = "loopEnd";
                     }
+                    else continue;
+
+                    ffStyle.push_back(char(ffMark.size()));
+                    ffStyle.insert(ffStyle.end(), ffMark.begin(), ffMark.end());
+                    tempSeqd.sequence.insert(pos, ffStyle.begin(), ffStyle.end());
+                    ffStyle.clear();
                 }
             }
 
