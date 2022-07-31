@@ -307,7 +307,7 @@ int writeLRT(string &lrt_file) {
                                                vector<uchar>{}));
 
             //Adjust channel volume
-            lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
+            lbrtSequence.push_back(lbrt_status(event_id, absolute_time - 10,
                                                (0xB0 | event_status), 0x07,
                                                vector<uchar>{event_val_0}));
 
