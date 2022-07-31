@@ -306,16 +306,11 @@ int writeLRT(string &lrt_file) {
                                               (0xC0 | event_status), event_type,
                                                vector<uchar>{}));
 
-            //Adjust channel volume
-            lbrtSequence.push_back(lbrt_status(event_id, absolute_time - 10,
-                                               (0xB0 | event_status), 0x07,
-                                               vector<uchar>{event_val_0}));
-
             //Play note
             //Value of zero also releases note
             lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
                                                status_byte, event_chan_val,
-                                               vector<uchar>{event_val_1}));
+                                               vector<uchar>{event_val_0}));
 
             //Release note after specified time
             //Sort through events later
