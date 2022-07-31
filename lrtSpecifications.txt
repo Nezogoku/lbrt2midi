@@ -1,24 +1,18 @@
-HEADER 0x24
+HEADER, 0x24 Bytes
     LBRT 0x00
     Offset of sequence data 0x04
-    Notated 32nd-notes per quarter note 0x08
+    Notated 32nd-notes per quarter note (?) 0x08
     Pulses per quarter note 0x0C
-    Time signature denominator 0x10
-        Exponent of base 2
-        Denominator = 2 ^ (d_value)
-            1 is half-note
-            2 is quarter-note
-            3 is sixteenth-note...
-    MIDI format? (Usually NULL) 0x14
+    Number of tracks (?) 0x10
+    Null (?) 0x14
     Unknown (Usually 256) 0x18
     Number of events 0x1C
-    Number of segment changes 0x20
-        Seems to be quarter notes
+    Number of quarter notes 0x20
 
-SEGMENT CHANGES 0x04
-    Event ID (When sequence jumps to the next segment) 0x00
+QUARTER NOTES, 0x04 Bytes
+    Event ID (For corresponding quarter note) 0x00
 
-EVENT 0x1C
+EVENT, 0x1C Bytes
     Event ID (0x00 is Start and End of track) 0x00
     Delta time 0x04
         Microseconds per quarter note
