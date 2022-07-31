@@ -94,7 +94,7 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
 
         int16_t sampTune = pataSGD.getSampleTuning(i),
                 sampHold = pataSGD.getSampleMod2(i)/* * 10*/,
-                sampSustain = pataSGD.getSampleMod3(i)/* * 10*/,
+                //sampSustain = pataSGD.getSampleMod3(i)/* * 10*/,
                 sampRelease = pataSGD.getSampleMod1(i)/* * 10*/,
                 sampPan = pataSGD.getSamplePan(i);
 
@@ -104,7 +104,7 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
 
         //Check if sample is empty
         if ((*samples[sampID]).data().empty()) {
-            if (isDebug) cout << "Sample " << sampID << " is empty" << endl;
+            if (isDebug) cout << (*samples[sampID]).name() << " is empty" << endl;
             continue;
         }
 
@@ -112,7 +112,7 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
                                                 SFGeneratorItem(SFGenerator::kKeyRange, RangesType(lowRange, highRange)),
                                                 SFGeneratorItem(SFGenerator::kFineTune, sampTune),
                                                 SFGeneratorItem(SFGenerator::kHoldVolEnv, ((sampHold * 10) & 0xFFFF)),
-                                                SFGeneratorItem(SFGenerator::kSustainVolEnv, ((sampSustain * 10) & 0xFFFF)),
+                                                //SFGeneratorItem(SFGenerator::kSustainVolEnv, ((sampSustain * 10) & 0xFFFF)),
                                                 SFGeneratorItem(SFGenerator::kReleaseVolEnv, ((sampRelease * 10) & 0xFFFF)),
                                                 SFGeneratorItem(SFGenerator::kPan, sampPan * 160),
                                                 SFGeneratorItem(SFGenerator::kSampleModes, isLoop)};
