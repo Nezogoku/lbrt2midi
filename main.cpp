@@ -27,17 +27,18 @@ using std::ofstream;
 using std::string;
 using std::vector;
 
+
 bool debug = false,
      play_result = false;
 
 struct lbrt_status {
     int quarter_note_id;
     uint32_t absol_t;
-    char status_a,
-         status_b;
-    vector<char> values;
+    uchar status_a,
+          status_b;
+    vector<uchar> values;
 
-    lbrt_status(int qnid, uint32_t ms, char stata, char statb, vector<char> val) :
+    lbrt_status(int qnid, uint32_t ms, uchar stata, uchar statb, vector<uchar> val) :
         quarter_note_id(qnid), absol_t(ms), status_a(stata), status_b(statb), values(val) {}
 
     //To make sorting in ascending order easier
@@ -73,7 +74,7 @@ void getDeltaTime(ofstream &sequence, uint32_t &dTime) {
         buffer |= ((dTime & 0x7F) | 0x80);
     }
     while (true) {
-        sequence << char(buffer);
+        sequence << uchar(buffer);
         if (buffer & 0x80) buffer >>= 8;
         else break;
     }
@@ -83,7 +84,7 @@ void getDeltaTime(ofstream &sequence, uint32_t &dTime) {
 
 void getChar(ofstream &sequence, int seqEvent, int sizeOf) {
     for (int s = sizeOf - 1; s >= 0; --s) {
-        char buff = ((seqEvent >> (s * 8)) & 0xFF);
+        uchar buff = ((seqEvent >> (s * 8)) & 0xFF);
         sequence << buff;
     }
 }
@@ -91,7 +92,7 @@ void getChar(ofstream &sequence, int seqEvent, int sizeOf) {
 int writeLRT(string &lrt_file) {
     if (debug) cout << std::setfill(' ') << std::left;
 
-    string mid_file, title;
+    string title;
     vector<lbrt_status> lbrtSequence;
     vector<uint32_t> change_ids;
 
@@ -109,9 +110,8 @@ int writeLRT(string &lrt_file) {
     uint32_t start_offset,
              clocks,
              ppqn,
-             note_type,
+             num_tracks,
              entries,
-             format,
              num_changes,
              entry_id;
 
@@ -128,12 +128,8 @@ int writeLRT(string &lrt_file) {
     if (debug) cout << "The PPQN of the current sequence is " << ppqn << endl;
 
     lbrt_file.seekg(0x10);
-    lbrt_file.read((char*)(&note_type), sizeof(uint32_t));
-    if (debug) cout << "The time signature is 2/" << std::pow(2, note_type) << endl;
-
-    lbrt_file.seekg(0x14);
-    lbrt_file.read((char*)(&format), sizeof(uint32_t));
-    if (debug) cout << "The MIDI format is " << format << endl;
+    lbrt_file.read((char*)(&num_tracks), sizeof(uint32_t));
+    if (debug) cout << "The number of tracks is " << num_tracks << endl;
 
     lbrt_file.seekg(0x1C);
     lbrt_file.read((char*)(&entries), sizeof(uint32_t));
@@ -167,17 +163,19 @@ int writeLRT(string &lrt_file) {
              event_default_val_0,
              event_default_val_1;
 
+    bool isLooped = false;
+
     int curr_entry = 0,
         absolute_time = 0;
 
     //Set sequence name
     lbrtSequence.push_back(lbrt_status(0, 0x00,
                                        0xFF, 0x03,
-                                       vector<char>{title.begin(), title.end()}));
+                                       vector<uchar>{title.begin(), title.end()}));
     //Set time signature
     lbrtSequence.push_back(lbrt_status(0, 0x00,
                                        0xFF, 0x58,
-                                       vector<char>{0x02, note_type, clocks, 0x08}));
+                                       vector<uchar>{0x04, 0x02, clocks, 0x08}));
     //Set sequence events
     //BIG BRAIN move, skip the first event
     //It's setting up the initial tempo, but I'm going to pretend it doesn't exist
@@ -243,30 +241,39 @@ int writeLRT(string &lrt_file) {
 
         if ((status_byte & 0xF0) == 0xB0) {                     // Controller event
             if (event_type == 0x63) {                           // Loop event
+                isLooped = true;
                 uint8_t second_byte;
+                string meta;
                 if (debug) cout << "LOOP EVENT" << endl;
 
                 //Sequence uses CC 99 for looping
                 //Will use CC 116/117 instead
-                if (event_chan_val == 0x14) {                 // Start loop
+                //Additionally use Final Fantasy style just because
+                if (event_chan_val == 0x14) {                   // Start loop
                     //Use CC 116 as loop start (EMIDI/XMI style)
                     //0x00 is infinite loop, 0x01-0xFF is finite looping
                     second_byte = 0x00;
+                    meta = "loopStart";
                 }
-                else if (event_chan_val == 0x1E) {            // End loop
+                else if (event_chan_val == 0x1E) {              // End loop
                     //Use CC 117 as loop end (EMIDI/XMI style)
-                    //Always 0xFF
-                    second_byte = 0xFF;
+                    //Always 0x7F
+                    second_byte = 0x7F;
+                    meta = "loopEnd";
                 }
 
                 lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
                                                    status_byte, 0x74,
-                                                   vector<char>{second_byte}));
+                                                   vector<uchar>{second_byte}));
+
+                lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
+                                                   0xFF, 0x06,
+                                                   vector<uchar>{meta.begin(), meta.end()}));
             }
             else {                                              // Any controller event
                 lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
                                                    status_byte, event_type,
-                                                   vector<char>{event_chan_val}));
+                                                   vector<uchar>{event_chan_val}));
             }
         }
         else if ((status_byte & 0xF0) == 0xF0) {                // Meta event
@@ -274,14 +281,14 @@ int writeLRT(string &lrt_file) {
                 if (debug) cout << "END OF TRACK" << endl;
                 lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
                                                    status_byte, event_type,
-                                                   vector<char>{}));
+                                                   vector<uchar>{}));
                 break;
             }
             else if (event_type == 0x51) {                      // Tempo change
                 if (debug) cout << "TEMPO CHANGE" << endl;
                 lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
                                                    status_byte, event_type,
-                                                   vector<char>{(event_time_val_1 >> 0x10) & 0xFF,
+                                                   vector<uchar>{(event_time_val_1 >> 0x10) & 0xFF,
                                                                 (event_time_val_1 >> 0x08) & 0xFF,
                                                                 (event_time_val_1 >> 0x00) & 0xFF}));
             }
@@ -297,19 +304,24 @@ int writeLRT(string &lrt_file) {
             //Assign program to channel
             lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
                                               (0xC0 | event_status), event_type,
-                                               vector<char>{}));
+                                               vector<uchar>{}));
+
+            //Adjust channel volume
+            lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
+                                               (0xB0 | event_status), 0x07,
+                                               vector<uchar>{event_val_0}));
 
             //Play note
             //Value of zero also releases note
             lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
                                                status_byte, event_chan_val,
-                                               vector<char>{event_val_0}));
+                                               vector<uchar>{event_val_1}));
 
             //Release note after specified time
             //Sort through events later
             lbrtSequence.push_back(lbrt_status(event_id, absolute_time + event_time_val_1,
                                                status_byte, event_chan_val,
-                                               vector<char>{0x00}));
+                                               vector<uchar>{0x00}));
         }
         else {                                                  // Running status?
             if (debug) cout << "RUNNING STATUS" << endl;        // Technically a marker
@@ -325,13 +337,16 @@ int writeLRT(string &lrt_file) {
     //Do NOT mess with the terminator
     std::sort(lbrtSequence.begin(), lbrtSequence.end() - 1);
 
-    //Change all times over final time to final time
+    //Change all times over final time to final time if looped
+    //Otherwise, change end time to previous event's time
     uint32_t fin_absol_t = lbrtSequence[lbrtSequence.size() - 1].absol_t;
-    for (auto &e : lbrtSequence) if (e.absol_t > fin_absol_t) e.absol_t = fin_absol_t;
+    if (isLooped) for (auto &e : lbrtSequence) if (e.absol_t > fin_absol_t) e.absol_t = fin_absol_t;
+    else lbrtSequence[lbrtSequence.size() - 1].absol_t = lbrtSequence[lbrtSequence.size() - 2].absol_t;
 
+    if (debug) if (isLooped) cout << "This sequence is looped" << endl;
     if (debug) cout << endl;
 
-    mid_file = lrt_file.substr(0, lrt_file.find_last_of('.') + 1) + "mid";
+    string mid_file = lrt_file.substr(0, lrt_file.find_last_of('.') + 1) + "mid";
     if (debug) cout << "Path of new MID file is " << mid_file << endl;
     if (debug) cout << endl;
 
@@ -343,8 +358,8 @@ int writeLRT(string &lrt_file) {
         mid.seekp(0x00);
         mid << "MThd";              //0x00
         getChar(mid, 0x06, 4);      //0x04
-        getChar(mid, format, 2);    //0x08
-        getChar(mid, 0x01, 2);      //0x0A
+        getChar(mid, 0x00, 2);      //0x08
+        getChar(mid, num_tracks, 2);//0x0A
         getChar(mid, ppqn, 2);      //0x0C
         mid << "MTrk";              //0x0E
         getChar(mid, finalSize, 4); //0x12
@@ -357,7 +372,7 @@ int writeLRT(string &lrt_file) {
             getDeltaTime(mid, temp_delta);
             mid << event.status_a;
             mid << event.status_b;
-            if ((event.status_a & 0xF0) == 0xF0) mid << char(event.values.size());
+            if ((event.status_a & 0xF0) == 0xF0) mid << uchar(event.values.size());
             for (auto &val : event.values) mid << val;
             prev_time = event.absol_t;
         }
@@ -378,6 +393,80 @@ int writeLRT(string &lrt_file) {
         cerr << e.what() << endl;
     }
     mid.close();
+
+    if (debug) {
+        string csv_file = lrt_file.substr(0, lrt_file.find_last_of('.') + 1) + "csv";
+        cout << "Path of new CSV file is " << csv_file << endl;
+        cout << endl;
+
+        ofstream csv(csv_file, ios::out);
+        try {
+            csv.seekp(0x00);
+            csv << "0, 0, HEADER, 0, 1, " << ppqn << '\n';
+            csv << "1, 0, START_TRACK\n";
+            for (auto &event : lbrtSequence) {
+                uint8_t statA = event.status_a,
+                        statB = event.status_b;
+
+                csv << "1, " << event.absol_t << ", ";
+                if ((statA & 0xF0) == 0x90) {
+                    csv << "NOTE_ON_C, " << int(event.status_a & 0x0F)
+                        << ", " << int(statB)
+                        << ", " << int(event.values[0]);
+                }
+
+                else if ((statA & 0xF0) == 0xB0) {
+                    csv << "CONTROL_C, " << int(event.status_a & 0x0F)
+                        << ", " << int(statB)
+                        << ", " << int(event.values[0]);
+                }
+
+                else if ((statA & 0xF0) == 0xC0) {
+                    csv << "PROGRAM_C, " << int(event.status_a & 0x0F)
+                        << ", " << int(statB);
+                }
+
+                else if (statA == 0xFF) {
+                    if (statB == 0x03) {
+                        csv << "TITLE_T, \""
+                            << string(event.values.begin(), event.values.end())
+                            << "\"";
+                    }
+
+                    else if (statB == 0x06) {
+                        csv << "MARKER_T, \""
+                            << string(event.values.begin(), event.values.end())
+                            << "\"";
+                    }
+
+                    else if (statB == 0x2F) {
+                        csv << "END_TRACK";
+                    }
+
+                    else if (statB == 0x51) {
+                        uint32_t ms = 0x00;
+                        for (auto &t : event.values) { ms <<= 8; ms |= t; }
+                        csv << "TEMPO, " << ms;
+                    }
+
+                    else if (statB == 0x58) {
+                        csv << "TIME_SIGNATURE";
+                        for (auto &s : event.values) { csv << ", " << int(s); }
+                    }
+                }
+                csv << '\n';
+            }
+            csv << "0, 0, END_OF_FILE\n";
+        }
+        catch (const fstream::failure & e) {
+            cerr << e.what() << endl;
+        }
+        catch (const std::exception & e) {
+            cerr << e.what() << endl;
+        }
+        csv.close();
+    }
+
     lbrtSequence.clear();
 
     return isSuccess;
