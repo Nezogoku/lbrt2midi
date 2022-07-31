@@ -55,6 +55,6 @@ EVENT, 0x1C Bytes
             0x2F <0x00> (End of track)
             0x51 <0x03 newTempo> (Change tempo)
     default(?) event value 0 0x1A
-        Might be default note pitch
+        Might be default note pitch/volume
     default(?) event value 1 0x1B
         Might be default note velocity
