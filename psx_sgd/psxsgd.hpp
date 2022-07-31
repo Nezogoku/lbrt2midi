@@ -29,11 +29,11 @@ class sgd {
         uint8_t getSampleRoot(int samp);
         uint8_t getSampleLow(int samp);
         uint8_t getSampleHigh(int samp);
-        int getSampleAttack(int samp);
-        int getSampleHold(int samp);
-        int getSampleSustain(int samp);
-        int getSampleRelease(int samp);
-        int getSamplePan(int samp);
+        uint8_t getSampleTuning(int samp);
+        uint8_t getSampleMod1(int samp);
+        uint8_t getSampleMod2(int samp);
+        uint8_t getSampleMod3(int samp);
+        int8_t getSamplePan(int samp);
         uint8_t getSampleBank(int samp);
         uint8_t getSamplePreset(int samp);
         bool sampleIsLoop(int samp);
