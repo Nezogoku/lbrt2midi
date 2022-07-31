@@ -553,10 +553,10 @@ void sgd::setWAVE(std::ifstream &tmpData) {
 
         tempWave.isLoop = (tempWave.loop_start == 0xFFFFFFFF || tempWave.loop_end == 0xFFFFFFFF) ? false : true;
         if (isDebug) cout << "Sample is looped: " << std::boolalpha << tempWave.isLoop << std::noboolalpha << endl;
-        if (isDebug) cout << dec << endl;
 
         tempWave.name = "samp_" + std::to_string(w);
         if (isDebug) cout << "Name of sample: " << tempWave.name << endl;
+        if (isDebug) cout << dec << endl;
 
         waveBank[w] = tempWave;
     }
@@ -745,12 +745,13 @@ void sgd::writeSequence(int seq) {
         mid.put(char((MTrk_Size >> 0x08) & 0xFF));
         mid.put(char((MTrk_Size >> 0x00) & 0xFF));
         for (char &event : midSequence) mid.put(event);
+        cout << seqdBank[seq].name << " successfully extracted" << endl;
     }
     catch (const fstream::failure & e) {
-        cerr << "Unable to save to " << midi_title << ":\n    " << e.what() << endl;
+        cerr << "Unable to extract " << seqdBank[seq].name << ":\n    " << e.what() << endl;
     }
     catch (const std::exception & e) {
-        cerr << "Unable to save to " << midi_title << ":\n    " << e.what() << endl;
+        cerr << "Something went wrong extracting " << seqdBank[seq].name << ":\n    " << e.what() << endl;
     }
     mid.close();
 }
