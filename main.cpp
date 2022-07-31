@@ -302,7 +302,7 @@ int writeLRT(string &lrt_file) {
             if (debug) cout << "\tReleased after: " << event_time_val_1 << "ms" << endl;
 
             //Assign program to channel
-            lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
+            lbrtSequence.push_back(lbrt_status(event_id, absolute_time - 10,
                                               (0xC0 | event_status), event_type,
                                                vector<uchar>{}));
 
