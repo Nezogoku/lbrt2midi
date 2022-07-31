@@ -489,6 +489,31 @@ void sgd::setSEQD(std::ifstream &tmpData) {
             }
             working_offset += tempSeqd.sequence.size() - 0x04;
 
+            //Sequence uses CC 99 for looping
+            //Will use CC 116/117 instead
+            for (int s = 0; s < tempSeqd.sequence.size(); ++s) {
+                int s0 = s,
+                    s1 = s + 1,
+                    s2 = s + 2;
+
+                if ((s0 >= tempSeqd.sequence.size()) ||
+                    (s1 >= tempSeqd.sequence.size()) ||
+                    (s2 >= tempSeqd.sequence.size())) break;
+
+                if ((tempSeqd.sequence[s0] & 0xF0) == 0xB0 &&
+                    (tempSeqd.sequence[s1] & 0xFF) == 0x63) {
+
+                    if ((tempSeqd.sequence[s2] & 0xFF) == 0x14) {
+                        tempSeqd.sequence[s1] = 0x74;
+                        tempSeqd.sequence[s2] = 0x00;
+                    }
+                    else if ((tempSeqd.sequence[s2] & 0xFF) == 0x1E) {
+                        tempSeqd.sequence[s1] = 0x75;
+                        tempSeqd.sequence[s2] = 0x7F;
+                    }
+                }
+            }
+
             if (isDebug) cout << "Size of sequence " << seqdBank.size() << ": " << tempSeqd.sequence.size() << endl;
             seqdBank.push_back(tempSeqd);
         }
