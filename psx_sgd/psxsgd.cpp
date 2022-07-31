@@ -368,29 +368,29 @@ void sgd::setRGND(std::ifstream &tmpData) {
         if (isDebug) cout << "Root key: " << int(tempRgnd.root_key) << endl;
 
         tmpData.seekg(working_offset + 0x1D);
-        tmpData.read((char*)(&tempRgnd.rate_attack), sizeof(uint8_t));
-        //tempRgnd.rate_attack *= 0x10;
-        if (isDebug) cout << "Attack rate: " << int(tempRgnd.rate_attack) * 0x10 << endl;
+        tmpData.read((char*)(&tempRgnd.fine_tune), sizeof(uint8_t));
+        //tempRgnd.fine_tune *= 0x10;
+        if (isDebug) cout << "Fine tune: " << int(tempRgnd.fine_tune) << endl;
 
         tmpData.seekg(working_offset + 0x20);
-        tmpData.read((char*)(&tempRgnd.rate_hold), sizeof(uint8_t));
-        //tempRgnd.rate_hold *= 0x10;
-        if (isDebug) cout << "Hold rate: " << int(tempRgnd.rate_hold) * 0x10 << endl;
+        tmpData.read((char*)(&tempRgnd.mod_1), sizeof(uint8_t));
+        //tempRgnd.mod_1 *= 0x10;
+        if (isDebug) cout << "Modifier 2: " << int(tempRgnd.mod_1) << endl;
 
         tmpData.seekg(working_offset + 0x21);
-        tmpData.read((char*)(&tempRgnd.rate_sustain), sizeof(uint8_t));
-        //tempRgnd.rate_sustain *= 0x10;
-        if (isDebug) cout << "Sustain rate: " << int(tempRgnd.rate_sustain) * 0x10 << endl;
+        tmpData.read((char*)(&tempRgnd.mod_2), sizeof(uint8_t));
+        //tempRgnd.mod_2 *= 0x10;
+        if (isDebug) cout << "Modifier 3: " << int(tempRgnd.mod_2) << endl;
 
         tmpData.seekg(working_offset + 0x22);
-        tmpData.read((char*)(&tempRgnd.rate_release), sizeof(uint8_t));
-        //tempRgnd.rate_release *= 0x10;
-        if (isDebug) cout << "Release rate: " << int(tempRgnd.rate_release) * 0x10 << endl;
+        tmpData.read((char*)(&tempRgnd.mod_3), sizeof(uint8_t));
+        //tempRgnd.mod_3 *= 0x10;
+        if (isDebug) cout << "Modifier 4: " << int(tempRgnd.mod_3) << endl;
 
         tmpData.seekg(working_offset + 0x23);
         tmpData.read((char*)(&tempRgnd.pan), sizeof(uint8_t));
         //tempRgnd.pan *= 0x10;
-        if (isDebug) cout << "Pan: " << int(tempRgnd.pan) * 0x10 << endl;
+        if (isDebug) cout << "Pan: " << int(tempRgnd.pan) << endl;
 
         tmpData.seekg(working_offset + 0x34);
         tmpData.read((char*)(&tempRgnd.sample_id), sizeof(uint32_t));
@@ -652,24 +652,24 @@ uint8_t sgd::getSampleHigh(int samp) {
     return rgndBank[samp].range_high;
 }
 
-int sgd::getSampleAttack(int samp) {
-    return int(rgndBank[samp].rate_attack);
+uint8_t sgd::getSampleTuning(int samp) {
+    return rgndBank[samp].fine_tune;
 }
 
-int sgd::getSampleHold(int samp) {
-    return int(rgndBank[samp].rate_hold);
+uint8_t sgd::getSampleMod1(int samp) {
+    return rgndBank[samp].mod_1;
 }
 
-int sgd::getSampleSustain(int samp) {
-    return int(rgndBank[samp].rate_sustain);
+uint8_t sgd::getSampleMod2(int samp) {
+    return rgndBank[samp].mod_2;
 }
 
-int sgd::getSampleRelease(int samp) {
-    return int(rgndBank[samp].rate_release);
+uint8_t sgd::getSampleMod3(int samp) {
+    return rgndBank[samp].mod_3;
 }
 
-int sgd::getSamplePan(int samp) {
-    return int(rgndBank[samp].pan);
+int8_t sgd::getSamplePan(int samp) {
+    return rgndBank[samp].pan;
 }
 
 uint8_t sgd::getSampleBank(int samp) {
