@@ -101,27 +101,24 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
         uint8_t sampRoot = pataSGD.getSampleRoot(i),
                 lowRange = pataSGD.getSampleLow(i),
                 highRange = pataSGD.getSampleHigh(i);
-        int    //sampAttack = pataSGD.getSampleAttack(i)/* * 160*/,
-               sampHold = pataSGD.getSampleHold(i) * 160,
-               sampSustain = pataSGD.getSampleSustain(i) * 160,
-               sampRelease = pataSGD.getSampleRelease(i) * 160,
-               sampPan = pataSGD.getSamplePan(i) * 160;
+
+        int16_t sampTune = pataSGD.getSampleTuning(i),
+                sampHold = pataSGD.getSampleMod2(i)/* * 10*/,
+                sampSustain = pataSGD.getSampleMod3(i)/* * 10*/,
+                sampRelease = pataSGD.getSampleMod1(i)/* * 10*/,
+                sampPan = pataSGD.getSamplePan(i);
+
         uint16_t isLoop = (pataSGD.sampleIsLoop(sampID)) ?
                            uint16_t(SampleMode::kLoopContinuously) :
                            uint16_t(SampleMode::kNoLoop);
 
-        //cout << "Hold rate: " << sampHold/10 << endl;
-        //cout << "Release rate: " << sampRelease/10 << endl;
-        //cout << "Pan: " << sampPan/10 << endl;
-        //cout << endl;
-
         vector<SFGeneratorItem> tempInstrZnGen {SFGeneratorItem(SFGenerator::kOverridingRootKey, sampRoot),
                                                 SFGeneratorItem(SFGenerator::kKeyRange, RangesType(lowRange, highRange)),
-                                                //SFGeneratorItem(SFGenerator::kAttackVolEnv, sampAttack),
-                                                SFGeneratorItem(SFGenerator::kHoldVolEnv, sampHold),
-                                                SFGeneratorItem(SFGenerator::kSustainVolEnv, sampSustain),
-                                                SFGeneratorItem(SFGenerator::kReleaseVolEnv, sampRelease),
-                                                SFGeneratorItem(SFGenerator::kPan, sampPan),
+                                                SFGeneratorItem(SFGenerator::kFineTune, sampTune),
+                                                SFGeneratorItem(SFGenerator::kHoldVolEnv, (sampHold & 0xFFFF)),
+                                                SFGeneratorItem(SFGenerator::kSustainVolEnv, (sampSustain & 0xFFFF)),
+                                                SFGeneratorItem(SFGenerator::kReleaseVolEnv, (sampRelease & 0xFFFF)),
+                                                SFGeneratorItem(SFGenerator::kPan, sampPan * 160),
                                                 SFGeneratorItem(SFGenerator::kSampleModes, isLoop)};
 
         //Making instrument zone
