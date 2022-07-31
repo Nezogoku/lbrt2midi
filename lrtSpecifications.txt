@@ -37,7 +37,7 @@ EVENT, 0x1C Bytes
         For note on/off:
             Corresponding program in SGD
     Event value 0 (Likely corresponding to default event value 0) 0x14
-        Might be note pitch
+        Might be note volume
     Event value 1 (Likely corresponding to default event value 1) 0x16
         Might be note velocity
     Event status (Likely corresponding to status of event) 0x18
