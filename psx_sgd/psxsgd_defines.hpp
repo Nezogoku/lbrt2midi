@@ -6,6 +6,8 @@
 #include <vector>
 
 
+typedef unsigned char uchar;
+
 #define PSX_SGXD 0x53475844
 #define PSX_RGND 0x52474E44
 #define PSX_SEQD 0x53455144
@@ -86,18 +88,18 @@ struct rgnd {
     uint32_t determinator;              // 0x09 is usually regional info
     uint32_t value0;                    // Usually Null
     uint32_t value1;                    // Usually 0x38
-    uint32_t value2;                    // Usually 0x64, sometimes 0x00 if SEQD not present
+    uint32_t value2;                    // Might be sample type; 0x00 is instrument, 0x64 is SFX?
     uint32_t value3;                    // Usually Null
     uint32_t value4;                    // Usually Null
     uint8_t range_low;                  // Lowest note value
     uint8_t range_high;                 // Highest note value
     uint16_t reserved0;                 // Usually Null
     uint8_t root_key;                   // Root key
-    int8_t rate_attack;                 // Might be attack rate
+    int8_t fine_tune;                   // Might be tuning (cents)
     uint16_t value5;                    // Might be start of info block?
-    int8_t rate_hold;                   // Might be hold rate
-    int8_t rate_sustain;                // Might be sustain rate
-    int8_t rate_release;                // Might be release rate
+    uint8_t mod_1;                      // Some modifier
+    uint8_t mod_2;                      // Some modifier
+    uint8_t mod_3;                      // Some modifier
     int8_t pan;                         // Might be pan, -4 to 0 to 4 perhaps?
     uint16_t value6;                    // Might be end of info block?
     uint16_t reserved1;                 // Usually Null
