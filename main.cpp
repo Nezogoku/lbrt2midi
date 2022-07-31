@@ -242,7 +242,7 @@ int writeLRT(string &lrt_file) {
         if ((status_byte & 0xF0) == 0xB0) {                     // Controller event
             if (event_type == 0x63) {                           // Loop event
                 isLooped = true;
-                uint8_t second_byte;
+                uint8_t first_byte, second_byte;
                 string meta;
                 if (debug) cout << "LOOP EVENT" << endl;
 
@@ -252,18 +252,20 @@ int writeLRT(string &lrt_file) {
                 if (event_chan_val == 0x14) {                   // Start loop
                     //Use CC 116 as loop start (EMIDI/XMI style)
                     //0x00 is infinite loop, 0x01-0xFF is finite looping
+                    first_byte = 0x74;
                     second_byte = 0x00;
                     meta = "loopStart";
                 }
                 else if (event_chan_val == 0x1E) {              // End loop
                     //Use CC 117 as loop end (EMIDI/XMI style)
                     //Always 0x7F
+                    first_byte = 0x75;
                     second_byte = 0x7F;
                     meta = "loopEnd";
                 }
 
                 lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
-                                                   status_byte, 0x74,
+                                                   status_byte, first_byte,
                                                    vector<uchar>{second_byte}));
 
                 lbrtSequence.push_back(lbrt_status(event_id, absolute_time,
