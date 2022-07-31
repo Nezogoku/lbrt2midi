@@ -61,17 +61,6 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
         //Collect all data from an audio sample in sgd file
         vector<int16_t> wav_data = pataSGD.getSample(i);
 
-        if (wav_data.empty()) {
-            if (isDebug) cout << "Sample " << i << " is empty" << endl;
-            if (isDebug) cout << endl;
-            samples.push_back(SoundFont().NewSample());
-            //instruments.push_back(SoundFont().NewInstrument());
-            //preset_zones.push_back(SFPresetZone());
-            //preset_zone_names.push_back("NULL"+to_string(i));
-            continue;
-        }
-
-
         if (isDebug) cout << "Collected data from sgd file" << endl;
         string sampName = pataSGD.getSampleName(i);
         uint32_t loopStart = pataSGD.getSampleLpStrt(i),
@@ -90,11 +79,12 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
                                         root,           // Root key
                                         correction));   // Microtuning
 
-        vector<int16_t> ().swap(wav_data);
+        wav_data.clear();
         if (isDebug) cout << endl;
     }
 
     if (isDebug) cout << endl;
+    int used = 0;
     for (int i = 0; i < numdef; ++i) {
         string instrName = "instr_" + to_string(i);
         int sampID = pataSGD.getSampleID(i);
@@ -112,14 +102,21 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
                            uint16_t(SampleMode::kLoopContinuously) :
                            uint16_t(SampleMode::kNoLoop);
 
+        //Check if sample is empty
+        if ((*samples[sampID]).data().empty()) {
+            if (isDebug) cout << "Sample " << sampID << " is empty" << endl;
+            continue;
+        }
+
         vector<SFGeneratorItem> tempInstrZnGen {SFGeneratorItem(SFGenerator::kOverridingRootKey, sampRoot),
                                                 SFGeneratorItem(SFGenerator::kKeyRange, RangesType(lowRange, highRange)),
                                                 SFGeneratorItem(SFGenerator::kFineTune, sampTune),
-                                                SFGeneratorItem(SFGenerator::kHoldVolEnv, (sampHold & 0xFFFF)),
-                                                SFGeneratorItem(SFGenerator::kSustainVolEnv, (sampSustain & 0xFFFF)),
-                                                SFGeneratorItem(SFGenerator::kReleaseVolEnv, (sampRelease & 0xFFFF)),
+                                                SFGeneratorItem(SFGenerator::kHoldVolEnv, ((sampHold * 10) & 0xFFFF)),
+                                                SFGeneratorItem(SFGenerator::kSustainVolEnv, ((sampSustain * 10) & 0xFFFF)),
+                                                SFGeneratorItem(SFGenerator::kReleaseVolEnv, ((sampRelease * 10) & 0xFFFF)),
                                                 SFGeneratorItem(SFGenerator::kPan, sampPan * 160),
                                                 SFGeneratorItem(SFGenerator::kSampleModes, isLoop)};
+
 
         //Making instrument zone
         if (isDebug) cout << "Adding " << instrName << " zone to soundfont" << endl;
@@ -129,7 +126,7 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
         //Adding instrument to soundfont
         if (isDebug) cout << "Adding " << instrName << " to soundfont" << endl;
         instruments.push_back(sf2.NewInstrument(instrName,
-                                                vector<SFInstrumentZone> {instrument_zones[i]}));
+                                                vector<SFInstrumentZone> {instrument_zones[used]}));
 
 
         string prgm_name = "prgm_";
@@ -145,11 +142,12 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
         //Adding preset zone to soundfont
         if (isDebug) cout << "Adding " << prgm_name << " zone to soundfont" << endl;
         preset_zone_names.push_back(prgm_name);
-        preset_zones.push_back(SFPresetZone(instruments[i], tempPrstZnGen,
+        preset_zones.push_back(SFPresetZone(instruments[used], tempPrstZnGen,
                                             vector<SFModulatorItem> {}));
 
-        vector<SFGeneratorItem> ().swap(tempInstrZnGen);
-        vector<SFGeneratorItem> ().swap(tempPrstZnGen);
+        used += 1;
+        tempInstrZnGen.clear();
+        tempPrstZnGen.clear();
         if (isDebug) cout << endl;
     }
 
@@ -158,7 +156,7 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
     vector<vector<vector<SFPresetZone>>> prgms(128, vector<vector<SFPresetZone>> (128));
     vector<vector<string>> prgm_names(128, vector<string> (128, "NULL"));
 
-    for (int v = 0; v < numdef; ++v) {
+    for (int v = 0; v < used; ++v) {
         if (preset_zone_names[v] == "NULL") continue;
 
         int bank = pataSGD.getSampleBank(v),
@@ -172,8 +170,11 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
         for (int p = 0; p < prgms.size(); ++p) {
             if (prgm_names[b][p] == "NULL") continue;
 
+            if (isDebug) cout << "Adding instrument to bank " << b
+                              << " patch " << p << endl;
             std::shared_ptr<SFPreset> finalPreset = sf2.NewPreset(prgm_names[b][p], p, b,
                                                                   vector<SFPresetZone> {prgms[b][p]});
+            if (isDebug) cout << endl;
         }
     }
 
@@ -194,8 +195,8 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
         return 0;
     }
     catch (const std::exception & e) {
-        cerr << "Unable to save to " << title << ":\n    " << e.what() << endl;
-        return 0;
+        cerr << "Something went wrong saving to " << title << ":\n    " << e.what() << endl;
+        //return 0;
     }
 
     if (hasSeq) {
@@ -203,7 +204,7 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
             pataSGD.writeSequence(m);
         }
     }
-    if (isDebug) cout << "Reached end of SF2 function" << endl;
+    if (isDebug) cout << "\nReached end of SF2 function" << endl;
 
     return 1;
 }
