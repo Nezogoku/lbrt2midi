@@ -3,9 +3,14 @@ HEADER, 0x24 Bytes
     Offset of sequence data 0x04
     Notated 32nd-notes per quarter note (?) 0x08
     Pulses per quarter note 0x0C
-    Number of tracks (?) 0x10
+    MIDI format (?) 0x10
+        Pitch bending necessitates multiple tracks
+        Could just as easily be number of tracks
     Null (?) 0x14
+        Could just as easily be MIDI format
     Unknown (Usually 256) 0x18
+        Could be format and number tracks in reverse byte order
+        ie 0x0001 0x0000 to 0x0000 0x0100
     Number of events 0x1C
     Number of quarter notes 0x20
 
@@ -37,9 +42,11 @@ EVENT, 0x1C Bytes
         For note on/off:
             Corresponding program in SGD
     Event value 0 (Likely corresponding to default event value 0) 0x14
-        Might be note volume
+        For note on/off:
+            Note velocity
     Event value 1 (Likely corresponding to default event value 1) 0x16
-        Might be note velocity
+        For note on/off:
+            Might be note pitch bend
     Event status (Likely corresponding to status of event) 0x18
         For channel events:
             Corresponding channel
@@ -54,7 +61,7 @@ EVENT, 0x1C Bytes
         0xFF <Type Size Value> (Meta event)
             0x2F <0x00> (End of track)
             0x51 <0x03 newTempo> (Change tempo)
-    default(?) event value 0 0x1A
-        Might be default note pitch/volume
-    default(?) event value 1 0x1B
-        Might be default note velocity
+    Default(?) event value 0 0x1A
+        Might be default event value 0
+    Default(?) event value 1 0x1B
+        Might be default event value 1
