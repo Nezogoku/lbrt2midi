@@ -474,10 +474,7 @@ void sgd::setSEQD(std::ifstream &tmpData) {
                 }
             }
             working_offset += tempSeqd.sequence.size() - 0x04;
-
-            //Sequence uses CC 99 for looping
-            //Will use CC 116/117 instead
-            //Additionally use Final Fantasy style just because
+            
             for (int s = 0; s < tempSeqd.sequence.size(); ++s) {
                 int s0 = s,
                     s1 = s + 1,
@@ -487,31 +484,41 @@ void sgd::setSEQD(std::ifstream &tmpData) {
                     (s1 >= tempSeqd.sequence.size()) ||
                     (s2 >= tempSeqd.sequence.size())) break;
 
-                if ((tempSeqd.sequence[s0] & 0xF0) == 0xB0 &&
-                    (tempSeqd.sequence[s1] & 0xFF) == 0x63) {
+                if ((tempSeqd.sequence[s0] & 0xF0) == 0xB0) {
+                    //Sequence uses CC 99 for looping
+                    //Will use CC 116/117 instead
+                    //Additionally use Final Fantasy style just because
+                    if ((tempSeqd.sequence[s1] & 0xFF) == 0x63) {
+                        auto pos = tempSeqd.sequence.begin() + s2 + 1;
+                        vector<char> ffStyle = {char(0x00), char(0xFF), char(0x06)};
+                        string ffMark;
 
-                    auto pos = tempSeqd.sequence.begin() + s2 + 1;
-                    vector<char> ffStyle = {char(0x00), char(0xFF), char(0x06)};
-                    string ffMark;
+                        if ((tempSeqd.sequence[s2] & 0xFF) == 0x14) {
+                            tempSeqd.sequence[s1] = 0x74;
+                            tempSeqd.sequence[s2] = 0x00;
 
-                    if ((tempSeqd.sequence[s2] & 0xFF) == 0x14) {
-                        tempSeqd.sequence[s1] = 0x74;
-                        tempSeqd.sequence[s2] = 0x00;
+                            ffMark = "loopStart";
+                        }
+                        else if ((tempSeqd.sequence[s2] & 0xFF) == 0x1E) {
+                            tempSeqd.sequence[s1] = 0x75;
+                            tempSeqd.sequence[s2] = 0x7F;
 
-                        ffMark = "loopStart";
+                            ffMark = "loopEnd";
+                        }
+                        else continue;
+
+                        ffStyle.push_back(char(ffMark.size()));
+                        ffStyle.insert(ffStyle.end(), ffMark.begin(), ffMark.end());
+                        tempSeqd.sequence.insert(pos, ffStyle.begin(), ffStyle.end());
+                        ffStyle.clear();
                     }
-                    else if ((tempSeqd.sequence[s2] & 0xFF) == 0x1E) {
-                        tempSeqd.sequence[s1] = 0x75;
-                        tempSeqd.sequence[s2] = 0x7F;
-
-                        ffMark = "loopEnd";
+                    
+                    //Not sure what sequence does with CC 118/119
+                    //Change them to CC 3... just because
+                    else if ((tempSeqd.sequence[s1] & 0xFF) == 0x76 ||
+                             (tempSeqd.sequence[s1] & 0xFF) == 0x77) {
+                        tempSeqd.sequence[s1] = 0x03;
                     }
-                    else continue;
-
-                    ffStyle.push_back(char(ffMark.size()));
-                    ffStyle.insert(ffStyle.end(), ffMark.begin(), ffMark.end());
-                    tempSeqd.sequence.insert(pos, ffStyle.begin(), ffStyle.end());
-                    ffStyle.clear();
                 }
             }
 
