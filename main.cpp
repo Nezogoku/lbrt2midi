@@ -340,6 +340,7 @@ int writeLRT(string &lrt_file) {
                                                             (0xC0 | event_status), event_type,
                                                              vector<uchar>{}));
 
+            /* LET'S NOT USE THIS FOR NOW...
             //Assign pitch bend to channel if applicable
             //Pitch bend value is 14-bit number (Least 7 bits per byte)
             if (event_val_1 != 0x40) isBent[event_status] = true;
@@ -350,6 +351,7 @@ int writeLRT(string &lrt_file) {
 
                 if (event_val_1 == 0x40) isBent[event_status] = false;
             }
+            */
 
 
             //Play note
@@ -382,11 +384,8 @@ int writeLRT(string &lrt_file) {
         if (events.empty()) continue;
         std::sort(events.begin(), events.end() - 1);
 
-        //Change all times over final time to final time if looped
-        //Otherwise, change end time to previous event's time
-        uint32_t fin_absol_t = events.back().absol_t;
-        if (isLooped) for (auto &e : events) if (e.absol_t > fin_absol_t) e.absol_t = fin_absol_t;
-        else events.back().absol_t = events[events.size() - 2].absol_t;
+        //Change end time to previous event's time
+        events.back().absol_t = events[events.size() - 2].absol_t;
     }
 
     if (debug) if (isLooped) cout << "This sequence is looped" << endl;
