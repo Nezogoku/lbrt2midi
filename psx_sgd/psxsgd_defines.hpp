@@ -107,6 +107,8 @@ struct rgnd {
     uint32_t value8;                    //
     uint32_t final_val;                 // Currently being used as a type of terminator
     uint32_t sample_id;                 // ID of corresponding sample
+
+    int8_t semi_tune;                   // Additional tuning (semi-tones)
 };
 
 //SEQD identifier
