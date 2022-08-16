@@ -92,7 +92,8 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
                 lowRange = pataSGD.getSampleLow(i),
                 highRange = pataSGD.getSampleHigh(i);
 
-        int16_t sampTune = pataSGD.getSampleTuning(i),
+        int16_t sampTuneFine = pataSGD.getSampleTuningFine(i),
+                sampTuneSemi = pataSGD.getSampleTuningSemi(i),
                 //sampHold = pataSGD.getSampleMod2(i)/* * 10*/,
                 //sampSustain = pataSGD.getSampleMod3(i)/* * 10*/,
                 sampRelease = pataSGD.getSampleMod1(i)/* * 10*/,
@@ -110,10 +111,11 @@ int setSF2(string sgd_file, bool isDebug, bool hasSeq) {
 
         vector<SFGeneratorItem> tempInstrZnGen {SFGeneratorItem(SFGenerator::kOverridingRootKey, sampRoot),
                                                 SFGeneratorItem(SFGenerator::kKeyRange, RangesType(lowRange, highRange)),
-                                                SFGeneratorItem(SFGenerator::kFineTune, sampTune),
+                                                SFGeneratorItem(SFGenerator::kFineTune, sampTuneFine),
+                                                SFGeneratorItem(SFGenerator::kCoarseTune, sampTuneSemi),
                                                 //SFGeneratorItem(SFGenerator::kHoldVolEnv, ((sampHold * 10) & 0xFFFF)),
                                                 //SFGeneratorItem(SFGenerator::kSustainVolEnv, ((sampSustain * 10) & 0xFFFF)),
-                                                SFGeneratorItem(SFGenerator::kReleaseVolEnv, ((sampRelease * 10) & 0xFFFF)),
+                                                SFGeneratorItem(SFGenerator::kReleaseVolEnv, ((sampRelease) & 0xFFFF) * 10),
                                                 SFGeneratorItem(SFGenerator::kPan, sampPan * 160),
                                                 SFGeneratorItem(SFGenerator::kSampleModes, isLoop)};
 
