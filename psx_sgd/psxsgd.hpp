@@ -29,7 +29,8 @@ class sgd {
         uint8_t getSampleRoot(int samp);
         uint8_t getSampleLow(int samp);
         uint8_t getSampleHigh(int samp);
-        uint8_t getSampleTuning(int samp);
+        int8_t getSampleTuningFine(int samp);
+        int8_t getSampleTuningSemi(int samp);
         uint8_t getSampleMod1(int samp);
         uint8_t getSampleMod2(int samp);
         uint8_t getSampleMod3(int samp);
