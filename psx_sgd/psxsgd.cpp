@@ -365,12 +365,19 @@ void sgd::setRGND(std::ifstream &tmpData) {
 
         tmpData.seekg(working_offset + 0x1C);
         tmpData.read((char*)(&tempRgnd.root_key), sizeof(uint8_t));
+        if (tempRgnd.root_key > 0x7F) {
+            //Catch root greater than 127
+            tempRgnd.semi_tune = 0x7F - tempRgnd.root_key;
+            tempRgnd.root_key = 0x7F;
+        }
+        else { tempRgnd.semi_tune = 0x00; }
         if (isDebug) cout << "Root key: " << int(tempRgnd.root_key) << endl;
+        if (isDebug) cout << "Semitone tuning: " << int(tempRgnd.semi_tune) << endl;
 
         tmpData.seekg(working_offset + 0x1D);
         tmpData.read((char*)(&tempRgnd.fine_tune), sizeof(uint8_t));
         //tempRgnd.fine_tune *= 0x10;
-        if (isDebug) cout << "Fine tune: " << int(tempRgnd.fine_tune) << endl;
+        if (isDebug) cout << "Fine tuning: " << int(tempRgnd.fine_tune) << endl;
 
         tmpData.seekg(working_offset + 0x20);
         tmpData.read((char*)(&tempRgnd.mod_1), sizeof(uint8_t));
@@ -474,7 +481,7 @@ void sgd::setSEQD(std::ifstream &tmpData) {
                 }
             }
             working_offset += tempSeqd.sequence.size() - 0x04;
-            
+
             for (int s = 0; s < tempSeqd.sequence.size(); ++s) {
                 int s0 = s,
                     s1 = s + 1,
@@ -512,7 +519,7 @@ void sgd::setSEQD(std::ifstream &tmpData) {
                         tempSeqd.sequence.insert(pos, ffStyle.begin(), ffStyle.end());
                         ffStyle.clear();
                     }
-                    
+
                     //Not sure what sequence does with CC 118/119
                     //Change them to CC 3... just because
                     else if ((tempSeqd.sequence[s1] & 0xFF) == 0x76 ||
@@ -685,8 +692,12 @@ uint8_t sgd::getSampleHigh(int samp) {
     return rgndBank[samp].range_high;
 }
 
-uint8_t sgd::getSampleTuning(int samp) {
+int8_t sgd::getSampleTuningFine(int samp) {
     return rgndBank[samp].fine_tune;
+}
+
+int8_t sgd::getSampleTuningSemi(int samp) {
+    return rgndBank[samp].semi_tune;
 }
 
 uint8_t sgd::getSampleMod1(int samp) {
