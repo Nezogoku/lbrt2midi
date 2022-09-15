@@ -109,8 +109,8 @@ SEQD (Optional) OFFSETS, Variable Bytes
 SEQD (Optional) SEQUENCES, Variable Bytes
     Offset to sequence name 0x00
     Sequence type 0x04
-        0x00 is raw MIDI data
-        0x01 is SFX controllers... somehow
+        0x00 is SFX controller... somehow
+        0x01 is raw MIDI data
     Sequence data 0x05
             Division is in FPS, 1SSSSSSS FFFFFFFF
             1 is division type FPS
