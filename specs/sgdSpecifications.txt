@@ -1,21 +1,34 @@
 SGD HEADER, 0x10 Bytes
     SGXD 0x00
-    Offset of bank name 0x04
-    Offset of sample data 0x08
+    Offset to bank name 0x04
+    Offset to sample data 0x08
     Length of sample data + 0x80000000 0x0C
+    
+    Consists of the following subchunks:
+        BUSS, audio mixing settings (?)
+        RGND, soundbank definitions
+        SEQD, sequence data
+        WAVE, sample definitions
+        WSUR, surround sound definitions (samples with 3+ channels)
+        WMKR, ???
+        CONF, configuration settings
+        NAME, name definitions
 
 
 BUSS (Optional) HEADER, 0x10 Bytes
     BUSS 0x00
     Length of BUSS chunk 0x04
     Null (Start of BUSS chunk) 0x08
-    Number of buss definitions (?) 0x0C
+    Number of buss pre-definitions (?) 0x0C
 
+BUSS (Optional) PRE-DEFINITIONS, Variable Bytes
+    ~Basically consists of values~
+    ~And offsets to buss settings~
 
-BUSS (Optional) DEFINITIONS, 0xXX Bytes
-    Null 0x00
-    Offset of buss name 0x04
-    ~I don't feel like exploring more right now...~
+BUSS (Optional) SETTINGS, Variable Bytes
+    ~Basically consists of strings of~
+    ~Variables of some sort (buss_1/Tverb/UMix_ambi...)~
+    ~And audio processing settings (wet/dry/mix...)~
 
 
 RGND (Optional) HEADER, 0x10 Bytes
@@ -38,7 +51,7 @@ RGND (Optional) PROGRAM DEFINITIONS, 0x38 Bytes
         If true, then range should probably be 0 to 60
     Might be an indicator 0x0C
         0x00 is instrument (?)
-        0x0A and 0x64 is SFX (?)
+        >0x00 is SFX (?)
     Unknown 0x10
     Unknown 0x14
     Lowest range of sample (note_low) 0x18
@@ -54,7 +67,7 @@ RGND (Optional) PROGRAM DEFINITIONS, 0x38 Bytes
     ADSR1 (?) 0x20
         Mostly seeing -127 to 127
     ??? 0x21
-        0 to 16
+        Mostly seeing 0 to 16
     ADSR2 (?) 0x22
         Mostly seeing -100 to 100
     Pan Control, signed (panpot) 0x23
@@ -71,7 +84,7 @@ RGND (Optional) PROGRAM DEFINITIONS, 0x38 Bytes
     Modifier 3 (?) 0x2F
     Unknown (Might be a terminator) 0x30
     Corresponding sample ID 0x34
-        0xFFFFFFFF likely means generate noise
+        0xFFFFFFFF is noise
 #Formula to calculate desired sample rate using:
 #   Root key,
 #   Root key's known sample rate from WAVE section,
@@ -86,17 +99,19 @@ SEQD (Optional) HEADER, 0x0C Bytes
     Length of SEQD chunk 0x04
     Null (Start of SEQD chunk) 0x08
 
-SEQD (Optional) OFFSETS, 0xXX Bytes
+SEQD (Optional) OFFSETS, Variable Bytes
     Number of offsets 0x00
     Offset 0x04[, 0x08, 0x0C,...]
         Null (Likely means go to next offset)
         Offset to Null (Sometimes used to separate sequences)
         Offset to offset
 
-SEQD (Optional) SEQUENCES, 0xXX Bytes
+SEQD (Optional) SEQUENCES, Variable Bytes
     Offset to sequence name 0x00
-    Sequence data 0x04
-        ~Might just be raw MIDI without header~
+    Sequence type 0x04
+        0x00 is raw MIDI data
+        0x01 is SFX controllers... somehow
+    Sequence data 0x05
             Division is in FPS, 1SSSSSSS FFFFFFFF
             1 is division type FPS
             SSSSSSS is FPS
@@ -114,7 +129,11 @@ SEQD (Optional) SEQUENCES, 0xXX Bytes
             0x9X noteNum velocity (Note on)
             0xAX noteNum pressure (Polyphonic aftertouch)
             0xBX value0 value1 (Control change)
+                value0, 0x76 is custom defined
                 value0, 0x77 is custom defined
+                value0, 0x63 is toggle loop
+                    value1, 0x14 is loop start
+                    value1, 0x1E is loop end
             0xCX programNum (Program change)
             0xDX pressure (Channel aftertouch)
             0xEX 0xXX (Pitch bend)
@@ -161,6 +180,7 @@ SEQD (Optional) SEQUENCES, 0xXX Bytes
                 0x59 0x02 keySig keyScale (Key signature)
                     keySig, Key signature; -7 to +7
                     keyScale, Key scale; 0 is major, 1 is minor
+
 
 WAVE (Optional) HEADER, 0x10 Bytes
     WAVE 0x00
