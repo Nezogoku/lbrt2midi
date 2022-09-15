@@ -53,7 +53,7 @@ RGND (Optional) PROGRAM DEFINITIONS, 0x38 Bytes
         0 to 4096
     ADSR1 (?) 0x20
         Mostly seeing -127 to 127
-    Sustain Level (?) 0x21
+    ??? 0x21
         0 to 16
     ADSR2 (?) 0x22
         Mostly seeing -100 to 100
@@ -141,7 +141,7 @@ SEQD (Optional) SEQUENCES, 0xXX Bytes
                         SS is FPS
                             00 is 24 FPS
                             01 is 25 FPS
-                            10 is 29.97 FPS
+                            10 is 29 FPS
                             11 is 30 FPS
                         HHHHH is hours
                             0 to 23
@@ -209,7 +209,7 @@ WSUR (Optional) HEADER, 0x10 Bytes
     Length of WSUR chunk 0x04
     Null (Start of WSUR chunk) 0x08
     Number of surround pre-definitions(?) 0x0C
-        
+
 WSUR (Optional) PRE-DEFINITIONS, 0x04 Bytes
     Number of channels (?) 0x00
     Offset to surround definitions(?) 0x04
@@ -245,7 +245,7 @@ NAME DEFINITIONS, 0x08 Bytes
     Name type (?) 0x02
         0x0000, Bank name
         0x1000, ???
-        0x2000 to 0x3000, Seqd and Wave name
+        0x2000 to 0x3000    , Seqd and Wave name
         0x3000 to 0x4000 (?), Wsur name
         0x4000 to 0x5000 (?), Buss name
         0x5000 to 0x6000 (?), Wmkr name (?)
