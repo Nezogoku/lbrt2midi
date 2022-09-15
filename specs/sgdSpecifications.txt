@@ -82,7 +82,7 @@ RGND (Optional) PROGRAM DEFINITIONS, 0x38 Bytes
     Modifier 1 (?) 0x2D
     Modifier 2 (?) 0x2E
     Modifier 3 (?) 0x2F
-    Unknown (Might be a terminator) 0x30
+    ??? 0x30
     Corresponding sample ID 0x34
         0xFFFFFFFF is noise
 #Formula to calculate desired sample rate using:
