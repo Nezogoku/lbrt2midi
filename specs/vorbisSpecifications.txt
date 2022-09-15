@@ -1,0 +1,113 @@
+PACKET HEADER, 0x1B Bytes
+    Type, 0x00
+        bit 0 (unset) is audio packet
+        0x01 is Identification
+        0x03 is Comment
+        0x05 is Setup
+    vorbis, 0x01
+    Packet, 0x07
+
+IDENTIFICATION PACKET, 0x1E Bytes
+    Version, 0x00
+    Number of channels, 0x04
+    Sample rate, 0x05
+    Maximum bitrate (signed), 0x09
+    Nominal bitrate (signed), 0x0D
+    Minimum bitrate (signed), 0x11
+    Block size 0, 0x15
+        MS Nibble
+        BS0 <= BS1
+    Block size 1, 0x15
+        LS Nibble
+    Framing flag, 0x16
+        bit 0 > 0
+
+
+COMMENT PACKET, Variable Bytes
+    Size of string, 0x00
+    String, 0x04
+    Size of user comment list, (0x04 + Size_of_string)
+    User comment list, (0x04 + Size_of_string + 0x04)
+    Framing flag, (0x04 + Size_of_string + 0x04 + (Total_size_of_user_comment_list))
+        bit 0 > 0
+
+USER COMMENT LIST, Variable Bytes
+    Size of user comment, 0x00
+    User comment, 0x04
+
+
+SETUP PACKET, Variable Bytes
+    Codebooks
+    Time domain transforms
+    Floors
+    Residues
+    Mappings
+    Modes
+
+CODEBOOKS, Variable Bytes
+    Vorbis code book size - 1, 0x00
+    Encoded vorbis code books, 0x01
+
+ENCODED VORBIS CODE BOOKS, Variable Bytes
+    Sync pattern, 0x00
+        Must be 0x424356 {BE}
+    Code book dimensions, 0x03
+        Byte 0, Byte 1
+    Code book entries, 0x05
+    Code word flags, 0x08
+        bit 0 is Ordered
+            0 is Code word list not ascending length ordered, use Sparse flag
+            1 is Code word ascending length order, Code words per length
+        bit 1 is Sparse
+            0 is Code word does not contain ignored entries
+                bits 2-6 is Size of entry - 1
+            1 is Code word contains ignored entries
+                bit 2 is Used entry
+                    0 is Entry unused
+                    1 is Entry used
+                        bits 3-7 is Size of entry - 1
+    Code words, 0x09
+
+CODE WORDS (ORDERED), Variable Bytes
+    Size of entry - 1, 0x00
+        bits 0-4
+    Amount entries, 0x00
+        bits 5-ilog(Code book entries - Current entry)
+    Entries, ???
+    
+    ~I want to die~
+
+CODE WORDS (UNORDERED), (Size of entry (Sparse)) Bytes
+    Entries, 0x00
+
+TIME DOMAIN TRANSFORMS, (0x01 + Vorbis time size * 2) Bytes
+    Size of Vorbis time - 1, 0x00
+        bits 0-5
+    Vorbis times, 0x01
+
+FLOORS, Variable Bytes
+    Size of Vorbis floor - 1, 0x00
+        bits 0-5
+    
+    ~Ugggggghhhhhh~
+
+RESIDUES, Variable Bytes
+    Size of Vorbis residue - 1, 0x00
+        bits 0-5
+    
+    ~Come back later~
+
+MAPPINGS, Variable Bytes
+    Size of Vorbis mapping - 1, 0x00
+        bits 0-5
+    
+    ~Pain~
+
+MODES, Variable Bytes
+    Size of Vorbis mode - 1, 0x00
+        bits 0-5
+    
+    ~Stuff~
+
+
+AUDIO PACKET

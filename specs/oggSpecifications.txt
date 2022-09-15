@@ -1,0 +1,20 @@
+PAGE HEADER, 0x1B Bytes
+    OggS, 0x00
+    Version, 0x04
+        Currently always 0x00
+    Header Type, 0x05
+        bit 0 (~0x01) is Continuation of previous
+        bit 1 (~0x02) if First page
+        bit 2 (~0x04) is last page
+    Time marker, 0x06
+        Total samples encoded up to current page
+        -1 is no packets finish on current page
+    Stream Serial ID, 0x0E
+    Page ID, 0x12
+    CRC Checksum, 0x16
+    Amount Page Segments, 0x1A
+
+SEGMENT, Variable Bytes
+    Total Segment Size, 0x00
+        for ss in Amount_Page_Segments do Add Total_Segment_Size[ss]
+    Segment, (0x00 + Amount_Page_Segments)
