@@ -4,7 +4,7 @@ SGD HEADER, 0x10 Bytes
     Offset to sample data 0x08
     Length of sample data + 0x80000000 0x0C
     
-    Consists of the following subchunks:
+    Consists of the following chunks:
         BUSS, audio mixing settings (?)
         RGND, soundbank definitions
         SEQD, sequence data
