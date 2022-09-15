@@ -253,6 +253,9 @@ CONF (Optional) DEFINITIONS, 0x0C Bytes
     Offset to configuration name 0x04
     Offset to configuration data 0x08
 
+CONF (Optional) DATA, Variable Bytes
+    Configuration data 0x00
+
 
 NAME HEADER, 0x10 Bytes
     NAME 0x00
