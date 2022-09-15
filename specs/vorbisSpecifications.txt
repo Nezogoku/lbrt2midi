@@ -1,24 +1,30 @@
-PACKET HEADER, 0x1B Bytes
+PACKET HEADER, 0x01 Byte
     Type, 0x00
         bit 0 (unset) is audio packet
         0x01 is Identification
         0x03 is Comment
         0x05 is Setup
-    vorbis, 0x01
-    Packet, 0x07
 
-IDENTIFICATION PACKET, 0x1E Bytes
+
+VORBIS PACKET, 0x06 Bytes
+    vorbis, 0x00
+    Packet, 0x06
+
+
+IDENTIFICATION PACKET, 0x17 Bytes
     Version, 0x00
     Number of channels, 0x04
     Sample rate, 0x05
     Maximum bitrate (signed), 0x09
     Nominal bitrate (signed), 0x0D
     Minimum bitrate (signed), 0x11
-    Block size 0, 0x15
-        MS Nibble
-        BS0 <= BS1
-    Block size 1, 0x15
-        LS Nibble
+    Block size exponent 0, 0x15
+        2 ^ BSE0, BSE0 is 6 to 13
+        bits xxxx 0000
+    Block size exponent 1, 0x15
+        2 ^ BSE1, BSE0 is 6 to 13
+        BSE1 <= BSE0
+        bits 0000 xxxx
     Framing flag, 0x16
         bit 0 > 0
 
