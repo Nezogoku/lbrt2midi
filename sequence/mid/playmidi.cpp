@@ -177,7 +177,7 @@ int playmidi::playSequence() {
 	cout << "Playing sequence "
 		 << sequence_file.substr(sequence_file.find_last_of("\\/") + 1)
 		 << " . . ." << endl;
-	while (g_MidiMessage != NULL) SDL_Delay(0);
+	while (g_MidiMessage != NULL) SDL_Delay(100);
 
 	return 1;
 }
