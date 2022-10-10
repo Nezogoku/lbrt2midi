@@ -645,7 +645,7 @@ void sgd::setWAVE(std::ifstream &tmpData) {
         tmpData.read((char*)(&tempWave.stream_size_full), sizeof(uint32_t));
         if (isDebug) cout << "Zero-padded size of stream or interleave (type3): 0x" << tempWave.stream_size_full << endl;
 
-        tempWave.isLoop = (tempWave.loop_start == 0xFFFFFFFF && tempWave.loop_end == 0xFFFFFFFF) ? false : true;
+        tempWave.isLoop = (tempWave.loop_start != 0xFFFFFFFF || tempWave.loop_end != 0xFFFFFFFF) ? true : false;
         if (isDebug) cout << "Sample is looped: " << ((tempWave.isLoop) ? "TRUE" : "FALSE") << endl;
 
         tempWave.name = "samp_" + std::to_string(w);
@@ -661,7 +661,8 @@ void sgd::setDATA(std::ifstream &tmpData) {
     for (auto &wave_info : waveBank) {
         uint32_t working_offset = sgxdHead.data_offset + wave_info.stream_offset;
 
-        if (wave_info.stream_size == 0x00) continue;
+        if (wave_info.stream_size == 0x00) continue;        // Skip empty samples
+        else if (wave_info.channels != 0x01) continue;      // And non-mono samples
 
         tmpData.seekg(working_offset);
         for (int i = 0; i < wave_info.stream_size; ++i) {
@@ -675,13 +676,14 @@ void sgd::setDATA(std::ifstream &tmpData) {
             case 0x01:      //HEADERLESS Big Endian PCM16
                 if (isDebug) cout << "Big Endian PCM16" << endl;
                 wave_info.pcmle = pcmbDecode(wave_info.data.data(), wave_info.data.size(),
-                                             wave_info.channels);
+                                             wave_info.loop_start, wave_info.loop_end);
                 continue;
 
             case 0x02:      //Ogg Vorbis
                 if (isDebug) cout << "Ogg Vorbis" << endl;
                 wave_info.pcmle = oggDecode(wave_info.data.data(), wave_info.data.size(),
-                                            wave_info.channels, wave_info.sample_rate);
+                                            wave_info.channels, wave_info.sample_rate,
+                                            wave_info.loop_start, wave_info.loop_end);
                 continue;
 
             case 0x03:      //HEADERLESS Sony ADPCM
@@ -690,19 +692,19 @@ void sgd::setDATA(std::ifstream &tmpData) {
                                             wave_info.loop_start, wave_info.loop_end);
                 continue;
 
-            case 0x04:      //Sony Atrac3Plus
+            case 0x04:      //Sony Atrac3Plus {WIP}
                 if (isDebug) cout << "Sony Atrac3Plus" << endl;
                 wave_info.pcmle = atpDecode(wave_info.data.data(), wave_info.data.size(),
                                             wave_info.channels, wave_info.sample_rate);
                 continue;
 
-            case 0x05:      //HEADERLESS Sony Short ADPCM
+            case 0x05:      //HEADERLESS Sony Short ADPCM {WIP}
                 if (isDebug) cout << "Sony Short ADPCM" << endl;
                 wave_info.pcmle = vgsDecode(wave_info.data.data(), wave_info.data.size(),
                                             wave_info.loop_start, wave_info.loop_end);
                 continue;
 
-            case 0x06:      //HEADERLESS Sony Atrac3
+            case 0x06:      //HEADERLESS Sony Atrac3 {WIP}
                 if (isDebug) cout << "Sony Atrac3" << endl;
                 wave_info.pcmle = at3Decode(wave_info.data.data(), wave_info.data.size(),
                                             wave_info.channels, wave_info.sample_rate);
