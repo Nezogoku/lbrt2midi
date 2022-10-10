@@ -17,7 +17,7 @@ HEADER, 0x24 Bytes
 QUARTER NOTES, 0x04 Bytes
     Event ID (For corresponding quarter note) 0x00
 
-EVENT, 0x1C Bytes
+EVENTS, 0x1C Bytes
     Event ID (0x00 is Start and End of track) 0x00
     Delta time 0x04
         Microseconds per quarter note
