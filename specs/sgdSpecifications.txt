@@ -38,7 +38,7 @@ RGND (Optional) HEADER, 0x10 Bytes
     Number of program pre-definitions 0x0C
     
 RGND (Optional) PROGRAM PRE-DEFINITIONS, 0x08 Bytes
-    ??? 0x00
+    Unknown 0x00
     Offset to program definition 0x04
 
 RGND (Optional) PROGRAM DEFINITIONS, 0x38 Bytes
@@ -66,7 +66,7 @@ RGND (Optional) PROGRAM DEFINITIONS, 0x38 Bytes
         0 to 4096
     ADSR1 (?) 0x20
         Mostly seeing -127 to 127
-    ??? 0x21
+    Unknown 0x21
         Mostly seeing 0 to 16
     ADSR2 (?) 0x22
         Mostly seeing -100 to 100
@@ -82,7 +82,7 @@ RGND (Optional) PROGRAM DEFINITIONS, 0x38 Bytes
     Modifier 1 (?) 0x2D
     Modifier 2 (?) 0x2E
     Modifier 3 (?) 0x2F
-    ??? 0x30
+    Unknown 0x30
     Corresponding sample ID 0x34
         0xFFFFFFFF is noise
 #Formula to calculate desired sample rate using:
@@ -109,77 +109,84 @@ SEQD (Optional) OFFSETS, Variable Bytes
 SEQD (Optional) SEQUENCES, Variable Bytes
     Offset to sequence name 0x00
     Sequence type 0x04
-        0x00 is SFX controller... somehow
+        0x00 is request for SFX (likely not true MIDI data)
         0x01 is raw MIDI data
-    Sequence data 0x05
-            Division is in FPS, 1SSSSSSS FFFFFFFF
-            1 is division type FPS
-            SSSSSSS is FPS
-                24 FPS
-                25 FPS
-                29 FPS (Meaning 29.97)
-                30 FPS
-            FFFFFFFF is Ticks per Frame
-        ~First byte is likely the MIDI format~
-        Delta time 0xXX[XXXXXX]
-            Variable length, ends with value < 0x80
-            Sometimes has deltatime 0x00, though not always
-        Status byte 0xXX
-            0x8X noteNum velocity (Note off)
-            0x9X noteNum velocity (Note on)
-            0xAX noteNum pressure (Polyphonic aftertouch)
-            0xBX value0 value1 (Control change)
-                value0, 0x76 is custom defined
-                value0, 0x77 is custom defined
-                value0, 0x63 is toggle loop
-                    value1, 0x14 is loop start
-                    value1, 0x1E is loop end
-            0xCX programNum (Program change)
-            0xDX pressure (Channel aftertouch)
-            0xEX 0xXX (Pitch bend)
-            0xF1 0xXX (Time code)
-            0xF2 0xXXXX (Song position)
-            0xF3 songNum (Song select)
-            0xF6 (Tune request)
-            0xF8 (Timing clock)
-            0xF9 (Measure end)
-            0xFA (Start)
-            0xFB (Continue)
-            0xFC (Stop)
-            0xFE (Active sensing)
-            0xFF (Reset)
-                0x00 0x00 (Sequence number)
-                0x07 0xXX markerText (Marker)
-                    markerText, text of variable length signifying synchronisation point at specific time
-                0x2F 0x00 (End of track)
-                0x51 0x03 0xXXXXXX (Change tempo)
-                    0xXXXXXX, ms per quarter note; 0x000001 to 0xFFFFFF
-                0x54 0x05 hours minutes seconds frames subframes (SMPTE offset)
-                    hours, 0SSHHHHH
-                        0 is reserved
-                        SS is FPS
-                            00 is 24 FPS
-                            01 is 25 FPS
-                            10 is 29 FPS
-                            11 is 30 FPS
-                        HHHHH is hours
-                            0 to 23
-                    minutes
-                        0 to 59
-                    seconds
-                        0 to 59
-                    frames
-                        0 to (FPS - 1)
-                    subframes
-                        0 to 99
-                0x58 0x04 numByte denByte midClocks 32perQuart (Time signature)
-                    numByte, numerator of time signature
-                    denByte, denominator of time signature ^ (-2)
-                    clocksPerClick, MIDI clocks per metronome click
-                    32perQuart, 32nd notes per 24 MIDI clocks
-                0x59 0x02 keySig keyScale (Key signature)
-                    keySig, Key signature; -7 to +7
-                    keyScale, Key scale; 0 is major, 1 is minor
+    data 0x05
+
+SEQD (Optional) SFX REQUEST, Variable Bytes
+    ~First byte is sequence type 0x00~
+    ~Gugugugugugugugu~
+
+SEQD (Optional) MIDI DATA, Variable Bytes
+    Division is in FPS, 1SSSSSSS FFFFFFFF
+    1 is division type FPS
+    SSSSSSS is FPS
+        24 FPS
+        25 FPS
+        29 FPS (Meaning 29.97)
+        30 FPS
+    FFFFFFFF is Ticks per Frame
+    
+    ~First byte is sequence type 0x01~
+    Delta time 0xXX[XXXXXX]
+        Variable length, ends with value < 0x80
+        Sometimes has deltatime 0x00, though not always
+    Status byte 0xXX
+        0x8X noteNum velocity (Note off)
+        0x9X noteNum velocity (Note on)
+        0xAX noteNum pressure (Polyphonic aftertouch)
+        0xBX value0 value1 (Control change)
+            value0, 0x76 is custom defined
+            value0, 0x77 is custom defined
+            value0, 0x63 is toggle loop
+                value1, 0x14 is loop start
+                value1, 0x1E is loop end
+        0xCX programNum (Program change)
+        0xDX pressure (Channel aftertouch)
+        0xEX bend (Pitch bend)
+        0xF1 code (Time code)
+        0xF2 0xXXXX (Song position)
+        0xF3 songNum (Song select)
+        0xF6 (Tune request)
+        0xF8 (Timing clock)
+        0xF9 (Measure end)
+        0xFA (Start)
+        0xFB (Continue)
+        0xFC (Stop)
+        0xFE (Active sensing)
+        0xFF (Reset)
+            0x00 0x00 (Sequence number)
+            0x07 0xXX markerText (Marker)
+                markerText, text of variable length signifying synchronisation point at specific time
+            0x2F 0x00 (End of track)
+            0x51 0x03 0xXXXXXX (Change tempo)
+                0xXXXXXX, ms per quarter note; 0x000001 to 0xFFFFFF
+            0x54 0x05 hours minutes seconds frames subframes (SMPTE offset)
+                hours, 0SSHHHHH
+                    0 is reserved
+                    SS is FPS
+                        00 is 24 FPS
+                        01 is 25 FPS
+                        10 is 29 FPS
+                        11 is 30 FPS
+                    HHHHH is hours
+                        0 to 23
+                minutes
+                    0 to 59
+                seconds
+                    0 to 59
+                frames
+                    0 to (FPS - 1)
+                subframes
+                    0 to 99
+            0x58 0x04 numByte denByte midClocks 32perQuart (Time signature)
+                numByte, numerator of time signature
+                denByte, denominator of time signature ^ (-2)
+                clocksPerClick, MIDI clocks per metronome click
+                32perQuart, 32nd notes per 24 MIDI clocks
+            0x59 0x02 keySig keyScale (Key signature)
+                keySig, Key signature; -7 to +7
+                keyScale, Key scale; 0 is major, 1 is minor
 
 
 WAVE (Optional) HEADER, 0x10 Bytes
@@ -211,13 +218,13 @@ WAVE (Optional) DEFINITIONS, 0x38 Bytes
         0x60, ???
         0x80 and 0x90, block size of sample data
     Corresponding value to info type 0x14
-    Maximum volume (?) 0x18
-    Minimum volume (?) 0x1A
+    Overall maximum volume (?) 0x18
+    Overall minimum volume (?) 0x1A
     Null 0x1C
     Length of sample 0x20
-    Start of loop, signed 0x24
+    Start of loop after conversion, signed 0x24
         -1, starts at beginning of sample, no loop
-    End of loop, signed 0x28
+    End of loop after conversion, signed 0x28
         -1, ends at end of sample, no loop
     Length of sample stream or interleave 0x2C
     Offset to sample stream from start of sample data 0x30
