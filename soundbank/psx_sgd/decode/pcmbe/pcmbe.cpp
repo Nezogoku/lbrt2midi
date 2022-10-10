@@ -5,10 +5,10 @@
 
 using std::vector;
 
-std::vector<int16_t> pcmbDecode(char *pcmbeData, uint32_t pbeSize, int ch) {
+std::vector<int16_t> pcmbDecode(char *pcmbeData, uint32_t pbeSize, uint32_t &loopStart, uint32_t &loopEnd) {
     vector<int16_t> wavData;
 
-    //Currently Mono or non-interleave only
+    //Channel number currently doesn't matter
     for (int i = 0; i < pbeSize; i += 2) {
         int16_t sample = (((int16_t)pcmbeData[i + 1]) << 8) | (0x00FF & pcmbeData[i]);
 
@@ -18,6 +18,11 @@ std::vector<int16_t> pcmbDecode(char *pcmbeData, uint32_t pbeSize, int ch) {
 
         wavData.push_back(newSample);
     }
+
+
+    //Set looping points if there are none
+    if (loopStart == 0xFFFFFFFF) loopStart = 0;
+    if (loopEnd == 0xFFFFFFFF) loopEnd = wavData.size() - 1;
 
     return wavData;
 }
