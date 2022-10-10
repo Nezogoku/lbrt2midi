@@ -13,7 +13,8 @@
 // Based off LBRTPlayer from owocek
 //      Used for comparison stuffs
 // Base codes in decode/vag from jmarti856 (I basically just changed the language it was written in)
-// Ccodes in decode/ogg derived from Xiph.org Foundation 1.2 Vorbis I specification
+//                               and vgmstream (rewritten to resemble jmarti856's)
+// stb_vorbis library and base codes in decode/ogg from Sean Barrett
 
 using std::cerr;
 using std::cout;
@@ -28,7 +29,7 @@ void printOpt(string pName, bool debug) {
          << "\nOptions:\n"
          << "\t-h       Prints this message\n"
          << "\t-d       Toggles debug mode\n"
-         << "\t-p       Toggles playback mode {WIP}\n"
+         << "\t-p       Toggles playback mode\n"
          << "\t             Uses last (converted) SF2 and all (converted) MIDI's\n"
          //<< "\t             If no SF2 specified, uses default soundbank\n"
          << endl;
@@ -150,6 +151,7 @@ int main(int argc, char *argv[]) {
 
 
         if (play_result) {
+            cout << endl;
             for (int p = 1; p < playables.size(); ++p) {
                 playmidi player(debug);
 
