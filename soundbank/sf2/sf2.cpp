@@ -30,6 +30,8 @@ int setSF2(std::string sgh_file, std::string sgb_file, std::string &sf2_file, bo
 }
 
 int setSF2(string sgd_file, std::string &sf2_file, bool isDebug) {
+    bool success = false;
+
     string title, mid_path;
     int numvag,
         numdef,
@@ -211,10 +213,11 @@ int setSF2(string sgd_file, std::string &sf2_file, bool isDebug) {
     try {
         ofstream ofs(sf2_file, ios::binary);
         sf2.Write(ofs);
+        success = true;
     }
     catch (const fstream::failure & e) {
         cerr << "Unable to save to " << title << ":\n    " << e.what() << endl;
-        return 0;
+        //return 0;
     }
     catch (const std::exception & e) {
         cerr << "Something went wrong saving to " << title << ":\n    " << e.what() << endl;
@@ -225,5 +228,5 @@ int setSF2(string sgd_file, std::string &sf2_file, bool isDebug) {
 
     if (isDebug) cout << "\nReached end of SF2 function" << endl;
 
-    return 1;
+    return success;
 }
