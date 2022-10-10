@@ -46,33 +46,36 @@ void sgd::setFile(std::string tmpHead, std::string tmpBody) {
         test.close();
     }
     else {
+        std::ofstream headBody;
         char buff;
 
-        ifstream head(tmpHead, ios::binary);
-        ifstream body(tmpHead, ios::binary);
-        if (!head.is_open()) {
+        test.open(tmpHead, ios::binary);
+        test.seekg(0x00);
+        if (!test.is_open()) {
             cerr << "Unable to open header file" << endl;
-            body.close();
             return;
         }
-        else if (!head.is_open()) {
+
+        headBody.open(tmpFile, ios::binary);
+        headBody.seekp(0x00);
+
+        while(test.get(buff)) {
+            headBody.put(buff);
+        }
+        test.close();
+
+        test.open(tmpBody, ios::binary);
+        test.seekg(0x00);
+        if (!test.is_open()) {
             cerr << "Unable to open body file" << endl;
-            head.close();
+            headBody.close();
             return;
         }
-        std::ofstream headBody(tmpFile, ios::binary);
 
-        while(head.get(buff)) {
-            head.get(buff);
+        while(test.get(buff)) {
             headBody.put(buff);
         }
-        head.close();
-
-        while(body.get(buff)) {
-            body.get(buff);
-            headBody.put(buff);
-        }
-        body.close();
+        test.close();
 
         headBody.close();
     }
