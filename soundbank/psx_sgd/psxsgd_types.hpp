@@ -140,8 +140,8 @@ struct wave {
     uint16_t volume_1;                  // Minimum volume
     uint32_t reserved3;                 // Null
     uint32_t sample_size;               // Number of samples in sample
-    int32_t loop_start;                 // Starting point of loop, 0xFF is no loop start
-    int32_t loop_end;                   // Ending point of loop, 0xFF is no loop end
+    uint32_t loop_start;                // Starting point of loop, 0xFF is no loop start
+    uint32_t loop_end;                  // Ending point of loop, 0xFF is no loop end
     uint32_t stream_size;               // Size of stream in sample or interleave (type3)
     uint32_t stream_offset;             // Address to stream
     uint32_t stream_size_full;          // Size of stream in sample (zero-padded) or interleave (type3)
