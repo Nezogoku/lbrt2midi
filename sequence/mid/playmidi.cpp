@@ -22,9 +22,9 @@ using std::string;
 
 
 
-tsf* g_TinySoundFont;            // Pointer to soundfont
-tml_message* g_MidiMessage;      // Midi playback state
-double g_Msec;                   // Total playback time
+static tsf* g_TinySoundFont;		// Pointer to soundfont
+static tml_message* g_MidiMessage;	// Midi playback state
+static double g_Msec;				// Total playback time
 
 
 playmidi::playmidi() {
@@ -35,11 +35,6 @@ playmidi::playmidi(bool isDebug) {
 	this->isDebug = isDebug;
 	this->hasSF2 = false;
 	g_MidiMessage = NULL;
-}
-
-playmidi::~playmidi() {
-	tsf_close(g_TinySoundFont);
-	tml_free(g_MidiMessage);
 }
 
 
@@ -178,6 +173,9 @@ int playmidi::playSequence() {
 		 << sequence_file.substr(sequence_file.find_last_of("\\/") + 1)
 		 << " . . ." << endl;
 	while (g_MidiMessage != NULL) SDL_Delay(100);
+
+	tsf_close(g_TinySoundFont);
+	tml_free(g_MidiMessage);
 
 	return 1;
 }
