@@ -678,8 +678,6 @@ void sgd::setDATA(std::ifstream &tmpData) {
         switch (wave_info.codec) {
             case 0x01:      //HEADERLESS Big Endian PCM16
                 if (isDebug) cout << "Big Endian PCM16" << endl;
-                wave_info.pcmle = pcmbDecode(wave_info.data.data(), wave_info.data.size(),
-                                             wave_info.loop_start, wave_info.loop_end);
                 continue;
 
             case 0x02:      //Ogg Vorbis
@@ -695,22 +693,16 @@ void sgd::setDATA(std::ifstream &tmpData) {
                                             wave_info.loop_start, wave_info.loop_end);
                 continue;
 
-            case 0x04:      //Sony Atrac3Plus {WIP}
+            case 0x04:      //Sony Atrac3Plus
                 if (isDebug) cout << "Sony Atrac3Plus" << endl;
-                wave_info.pcmle = atpDecode(wave_info.data.data(), wave_info.data.size(),
-                                            wave_info.channels, wave_info.sample_rate);
                 continue;
 
-            case 0x05:      //HEADERLESS Sony Short ADPCM {WIP}
+            case 0x05:      //HEADERLESS Sony Short ADPCM
                 if (isDebug) cout << "Sony Short ADPCM" << endl;
-                wave_info.pcmle = vgsDecode(wave_info.data.data(), wave_info.data.size(),
-                                            wave_info.loop_start, wave_info.loop_end);
                 continue;
 
             case 0x06:      //HEADERLESS Sony Atrac3 {WIP}
                 if (isDebug) cout << "Sony Atrac3" << endl;
-                wave_info.pcmle = at3Decode(wave_info.data.data(), wave_info.data.size(),
-                                            wave_info.channels, wave_info.sample_rate);
                 continue;
 
             default:        //Unknown
@@ -754,7 +746,7 @@ std::vector<int16_t> sgd::getSample(int samp) {
         return {};
     }
     else if (waveBank[samp].channels != 0x01) {
-        cerr << "Sample " << samp << " is not supported at this time" << endl;
+        //cerr << "Sample " << samp << " is not supported at this time" << endl;
         return {};
     }
     else {
@@ -853,7 +845,10 @@ void sgd::writeSequence(int seq) {
     const uint16_t MThd_TRKS = 0x01;
     //Division 1, 30 FPS, 196 Ticks per frame (?)
     //Would be 1  0011110 11000100
-    const uint16_t MThd_DIVI = 0x9EC4;
+    const uint16_t MThd_NEGB = 0x8000;
+    const uint16_t MThd_FPSB = 0x1E;
+    const uint16_t MThd_TPFB = 0xC4;
+    const uint16_t MThd_DIVI = MThd_NEGB | (MThd_FPSB << 8) | MThd_TPFB;
     const char MTrk[5] = "MTrk";
     uint32_t MTrk_Size;
 
