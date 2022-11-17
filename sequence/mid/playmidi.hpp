@@ -10,7 +10,6 @@
 
 class playmidi {
     public:
-        ~playmidi();
         playmidi();
         playmidi(bool isDebug);
 
