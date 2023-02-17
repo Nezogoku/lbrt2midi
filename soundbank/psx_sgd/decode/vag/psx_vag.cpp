@@ -112,7 +112,7 @@ int adpcmDecode(unsigned char *adpcmData, int adpcmSize, uint8_t &loopType, int1
         }
     }
 
-    loopType = (isLoopStart && isLoopEnd);
+    //loopType = (isLoopStart && isLoopEnd);
 
     return 1;
 }
