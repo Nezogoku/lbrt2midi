@@ -225,7 +225,7 @@ WAVE (Optional) DEFINITIONS, 0x38 Bytes
     Start of loop after conversion, signed 0x24
         -1, starts at beginning of sample, no loop
     End of loop after conversion, signed 0x28
-        -1, ends at end of sample, no loop
+        -1, ends at end of sample
     Length of sample stream or interleave 0x2C
     Offset to sample stream from start of sample data 0x30
     Length of sample stream (zero-padded) or interleave 0x34
@@ -272,12 +272,13 @@ NAME HEADER, 0x10 Bytes
 
 NAME DEFINITIONS, 0x08 Bytes
     Name ID 0x00
-    Name type (?) 0x02
-        0x0000, Bank name
-        0x1000, ???
-        0x2000 to 0x3000    , Seqd and Wave name
-        0x3000 to 0x4000 (?), Wsur name
-        0x4000 to 0x5000 (?), Buss name
-        0x5000 to 0x6000 (?), Wmkr name (?)
-        0x6000 to 0x7000 (?), Conf name
+    Global ID 0x02
+    Name type 0x03
+        0x00, Bank name
+        0x10, ???
+        0x20 to 0x30    , Seqd and Wave name
+        0x30 to 0x40 (?), Wsur name
+        0x40 to 0x50 (?), Buss name
+        0x50 to 0x60 (?), Wmkr name (?)
+        0x60 to 0x70 (?), Conf name
     Offset to name 0x04
