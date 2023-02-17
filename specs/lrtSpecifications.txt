@@ -1,0 +1,65 @@
+HEADER, 0x24 Bytes
+    LBRT 0x00
+    Offset of sequence data 0x04
+    Notated 32nd-notes per quarter note (?) 0x08
+    Pulses per quarter note 0x0C
+    MIDI format (?) 0x10
+        Pitch bending necessitates multiple tracks
+        Could just as easily be number of tracks
+    Null (?) 0x14
+        Could just as easily be MIDI format
+    Unknown (Usually 256) 0x18
+    Number of events 0x1C
+    Number of quarter notes 0x20
+
+QUARTER NOTES, 0x04 Bytes
+    Event ID (For corresponding quarter note) 0x00
+
+EVENT, 0x1C Bytes
+    Event ID (0x00 is Start and End of track) 0x00
+    Delta time 0x04
+        Microseconds per quarter note
+    Event time value 0x08
+        For tempo change:
+            Tempo = 60000000/t_value
+        For note on/off:
+            Duration of held note in microseconds
+        For running status:
+            Current tempo in microseconds
+    Event byte 0x0C
+        For control events:
+            Corresponding value
+        For note on/off:
+            Note pitch
+    Unknown (Maybe NULL?) 0x10
+    Event value Type 0x12
+        For meta events:
+            Corresponding meta event type
+        For control events:
+            Corresponding control type
+        For note on/off:
+            Corresponding program in SGD
+    Event value 0 (Likely corresponding to default event value 0) 0x14
+        For note on/off:
+            Note velocity
+    Event value 1 (Likely corresponding to default event value 1) 0x16
+        For note on/off:
+            Might be note pitch bend
+    Event status (Likely corresponding to status of event) 0x18
+        For channel events:
+            Corresponding channel
+    Status byte 0x19
+        0x00 (Running status?)
+        0x9X <NoteNum Velocity> (Note on/off)
+        0xBX <ControlNum Value> (Controller)
+            0x00 (Bank select MSB)
+            0x63 (NRPN Parameter MSB)
+                0x14 (Loop start)
+                0x1E (Loop end)
+        0xFF <Type Size Value> (Meta event)
+            0x2F <0x00> (End of track)
+            0x51 <0x03 newTempo> (Change tempo)
+    Default(?) event value 0 0x1A
+        Might be default event value 0
+    Default(?) event value 1 0x1B
+        Might be default event value 1
