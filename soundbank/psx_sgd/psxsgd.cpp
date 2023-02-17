@@ -466,7 +466,7 @@ void sgd::setWAVE(uchar *in) {
 
         //Determine loop type
         waveBank[w].loop_type += ((waveBank[w].loop_start < 0) ? 0 : 1);
-        waveBank[w].loop_type += ((waveBank[w].loop_end < 0) ? 0 : 1);
+        //waveBank[w].loop_type += ((waveBank[w].loop_end < 0) ? 0 : 1);
 
         //Fix negative loop points
         if (waveBank[w].loop_start < 0) waveBank[w].loop_start = 0;
