@@ -6,6 +6,7 @@ Patapon and common sequences can be listened to directly so long as they have an
 
 Requires gocha's SF2cute library to build.
 Included stb_vorbis library.
+Included TinySoundFont library.
 
 Borrowed code from jmarti856 and vgmstream (decode/vag) with some minor changes.
 Borrowed code from schellingb (mid/playmidi) with some minor changes.
