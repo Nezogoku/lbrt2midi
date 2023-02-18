@@ -298,6 +298,14 @@ void sgd::setNAME(uchar *in) {
 
     //Reorganize names
     std::sort(nameBank, nameBank + nameHead.amount);
+
+    if (isDebug) {
+        for (int n = 0; n < nameHead.amount; ++n) {
+            fprintf(stdout, "    Name: %s\n", nameBank[n].name.c_str());
+            fprintf(stdout, "        Type: %d\n", nameBank[n].name_type >> 8);
+            fprintf(stdout, "        Group ID %u, Name ID %u\n", nameBank[n].name_type & 0xFF, nameBank[n].name_id);
+        }
+    }
 }
 
 void sgd::setRGND(uchar *in) {
@@ -409,7 +417,11 @@ void sgd::setSEQD(uchar *in) {
             uint32_t nam_off = getLeInt(in, 0x04);
             if (!nam_off) { seqdBank[s].seqs[m].seq_data = 0; continue; }
 
-            seqdBank[s].seqs[m].seq_format = getLeInt(in, 0x01);
+            seqdBank[s].seqs[m].seq_format = getLeInt(in, 0x02);
+            seqdBank[s].seqs[m].reserved0 = getLeInt(in, 0x02);
+            seqdBank[s].seqs[m].volume_0 = getLeInt(in, 0x02);
+            seqdBank[s].seqs[m].volume_1 = getLeInt(in, 0x02);
+            seqdBank[s].seqs[m].seq_size = getLeInt(in, 0x04);
             seqdBank[s].seqs[m].seq_data = in;
 
             in = sgxdData + nam_off;
@@ -423,6 +435,7 @@ void sgd::setSEQD(uchar *in) {
             seqdHead.amount += 1;
 
             if (isDebug) fprintf(stdout, "    Name of sequence: %s\n", seqdBank[s].seqs[m].name.c_str());
+            if (isDebug) fprintf(stdout, "        Offset to sequence: 0x%08X\n", seqdBank[s].seqs[m].seq_data - sgxdData);
             if (isDebug) fprintf(stdout, "        Format of sequence: %u\n", seqdBank[s].seqs[m].seq_format);
             if (isDebug) fprintf(stdout, "        Group ID %u, Song ID %u\n", s, m);
         }
@@ -606,65 +619,70 @@ void sgd::writeSequences() {
         if (!seqdBank[b].seqs) continue;
 
         for (int g = 0; g < seqdBank[b].amount; ++g) {
-            seq &t_seq = seqdBank[b].seqs[g];
+            auto &t_seq = seqdBank[b].seqs[g];
 
-            if (!t_seq.seq_data || !t_seq.seq_format) continue;
+            if (!t_seq.seq_data/* || !t_seq.seq_format*/) continue;
             uchar *dat = t_seq.seq_data;
 
             std::string full_name = pathName + t_seq.name;
-            if (seqdBank[b].amount > 1) full_name += getFData(" (GID %d SID %d)", b, g);
+            if (seqdBank[b].amount > 1 && !t_seq.seq_format) full_name += getFData(" (GID %d SID %d)", b, g);
 
-            std::ofstream mid(full_name + ".mid", std::ios::binary);
+            std::ofstream mid(full_name + ((!t_seq.seq_format) ? ".call" : ".mid"), std::ios::binary);
             try {
                 mid.seekp(0x00);
-                mid.write(MThd, 4);
-                mid.write(MThd_SIZE, 4);
-                mid.write(MThd_FRMT, 2);
-                mid.write(MThd_TRKS, 2);
-                mid.write(MThd_DIVI, 2);
-                mid.write(MTrk, 4);
-                mid.write(getFData("0000"), 4);
-
-                uint32_t init_pos = mid.tellp();
-
-                if (seqdBank[b].amount > 1) mid.write(getFData("%c%c%c%c%c%c", 0x00, 0xFF, 0x00, 0x02, g >> 8, g), 6);
-                mid.write(getFData("%c%c%c%c%s", 0x00, 0xFF, 0x03, t_seq.name.size(), t_seq.name.c_str()), 4 + t_seq.name.size());
-
-                while (true) {
-                    if ((t_seq.seq_format == 1 && cmpChar(&dat[0], "\xFF\x2F", 2)) ||
-                        (t_seq.seq_format == 0 && cmpChar(&dat[0], "\xFF\x00", 2))) {
-                        dat += 2;
-
-                        mid.write(getFData("%c%c%c", 0xFF, 0x2F, 0x00), 3);
-                        break;
-                    }
-                    else if ((dat[0] & 0xF0) == 0xB0) {
-                        //fprintf(stdout, "    CC\n");
-                        if (cmpChar(&dat[1], "\x63\x14", 2)) {
-                            //fprintf(stdout, "    Loop start\n");
-                            mid.write(getFData("%c%c%c%s", 0xFF, 0x06, 9, "loopStart"), 12);
-                            mid.write(getFData("%c%c%c%c", 0x00, dat[0], 0x74, 0x00), 4);
-                        }
-                        else if (cmpChar(&dat[1], "\x63\x1E", 2)) {
-                            //fprintf(stdout, "    Loop end\n");
-                            mid.write(getFData("%c%c%c%s", 0xFF, 0x06, 7, "loopEnd"), 10);
-                            mid.write(getFData("%c%c%c%c", 0x00, dat[0], 0x75, 0x7F), 4);
-                        }
-                        else if (dat[1] == 0x76 || dat[1] == 0x77) {
-                            //fprintf(stdout, "    Faulty loops\n");
-                            mid.write(getFData("%c%c%c", dat[0], 0x03, dat[2]), 3);
-                        }
-                        else mid.write(getFData("%c%c%c", dat[0], dat[1], dat[2]), 3);
-
-                        dat += 3;
-                    }
-                    else mid.put(*dat++);
+                if (!t_seq.seq_format) {
+                    mid.write((const char*)dat, t_seq.seq_size);
                 }
-                uint32_t term_pos = mid.tellp();
-                term_pos -= init_pos;
+                else {
+                    mid.write(MThd, 4);
+                    mid.write(MThd_SIZE, 4);
+                    mid.write(MThd_FRMT, 2);
+                    mid.write(MThd_TRKS, 2);
+                    mid.write(MThd_DIVI, 2);
+                    mid.write(MTrk, 4);
+                    mid.write(getFData("0000"), 4);
 
-                mid.seekp(init_pos - 4);
-                mid.write(getFData("%c%c%c%c", term_pos >> 24, term_pos >> 16, term_pos >> 8, term_pos), 4);
+                    uint32_t init_pos = mid.tellp();
+
+                    if (seqdBank[b].amount > 1) mid.write(getFData("%c%c%c%c%c%c", 0x00, 0xFF, 0x00, 0x02, g >> 8, g), 6);
+                    mid.write(getFData("%c%c%c%c%s", 0x00, 0xFF, 0x03, t_seq.name.size(), t_seq.name.c_str()), 4 + t_seq.name.size());
+
+                    while (dat < t_seq.seq_data + t_seq.seq_size) {
+                        if ((t_seq.seq_format == 1 && cmpChar(&dat[0], "\xFF\x2F", 2)) ||
+                            (t_seq.seq_format == 0 && cmpChar(&dat[0], "\xFF\x00", 2))) {
+                            dat += 2;
+
+                            mid.write(getFData("%c%c%c", 0xFF, 0x2F, 0x00), 3);
+                            break;
+                        }
+                        else if ((dat[0] & 0xF0) == 0xB0) {
+                            //fprintf(stdout, "    CC\n");
+                            if (cmpChar(&dat[1], "\x63\x14", 2)) {
+                                //fprintf(stdout, "    Loop start\n");
+                                mid.write(getFData("%c%c%c%s", 0xFF, 0x06, 9, "loopStart"), 12);
+                                mid.write(getFData("%c%c%c%c", 0x00, dat[0], 0x74, 0x00), 4);
+                            }
+                            else if (cmpChar(&dat[1], "\x63\x1E", 2)) {
+                                //fprintf(stdout, "    Loop end\n");
+                                mid.write(getFData("%c%c%c%s", 0xFF, 0x06, 7, "loopEnd"), 10);
+                                mid.write(getFData("%c%c%c%c", 0x00, dat[0], 0x75, 0x7F), 4);
+                            }
+                            else if (dat[1] == 0x76 || dat[1] == 0x77) {
+                                //fprintf(stdout, "    Faulty loops\n");
+                                mid.write(getFData("%c%c%c", dat[0], dat[1] - 0x58, dat[2]), 3);
+                            }
+                            else mid.write(getFData("%c%c%c", dat[0], dat[1], dat[2]), 3);
+
+                            dat += 3;
+                        }
+                        else mid.put(*dat++);
+                    }
+                    uint32_t term_pos = mid.tellp();
+                    term_pos -= init_pos;
+
+                    mid.seekp(init_pos - 4);
+                    mid.write(getFData("%c%c%c%c", term_pos >> 24, term_pos >> 16, term_pos >> 8, term_pos), 4);
+                }
 
                 fprintf(stdout, "    %s successfully extracted\n", t_seq.name.c_str());
             }
