@@ -121,7 +121,11 @@ struct s_rgnd {
 //SEQD sequence data
 struct seq {
     std::string name;                   // Sequence name at offset
-    uint8_t seq_format;                 // Sequence format
+    uint16_t seq_format;                // Sequence format
+    uint16_t reserved0;                 //
+    uint16_t volume_0;                  // Maximum volume?
+    uint16_t volume_1;                  // Minimum volume?
+    uint32_t seq_size;                  // Size of sequence data
     unsigned char *seq_data;            // Sequence address
 };
 
