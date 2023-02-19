@@ -361,7 +361,7 @@ void sgd::setRGND(uchar *in) {
 
             //Catch root greater than 127
             if (rgndBank[d].tones[t].root_key > 0x7F) {
-                rgndBank[d].tones[t].semi_tune = rgndBank[d].tones[t].root_key % 0x7F;
+                rgndBank[d].tones[t].semi_tune = -rgndBank[d].tones[t].root_key % 0x7F;
                 rgndBank[d].tones[t].root_key = 0x7F;
             }
             else { rgndBank[d].tones[t].semi_tune = 0x00; }
@@ -621,7 +621,7 @@ void sgd::writeSequences() {
         for (int g = 0; g < seqdBank[b].amount; ++g) {
             auto &t_seq = seqdBank[b].seqs[g];
 
-            if (!t_seq.seq_data/* || !t_seq.seq_format*/) continue;
+            if (!t_seq.seq_data || (!t_seq.seq_format && !isDebug)) continue;
             uchar *dat = t_seq.seq_data;
 
             std::string full_name = pathName + t_seq.name;
