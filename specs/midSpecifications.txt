@@ -249,7 +249,7 @@ MIDI TRACK, Variable Bytes
                         0xSR is Sub-frames (0 to 99)
                     0x58 is Time signature (0xFF 0x58 0x04 0xNN 0xXX 0xTT 0xQQ)
                         0xNN is Time signature numerator
-                        0xXX is Time signature denominator (2^0xXX)
+                        0xXX is Time signature denominator (Base 2 to the 0xXX power)
                         0xTT is Ticks per click
                             ~Clicks per Note = TPC / PPQN~
                         0xQQ is Amount notated 32nd notes per quarter note (Default is 8)
