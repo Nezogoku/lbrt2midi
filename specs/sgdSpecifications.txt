@@ -1,0 +1,245 @@
+SGD HEADER, 0x10 Bytes
+    SGXD, 0x00
+    Offset to bank name, 0x04
+    Offset to sample data, 0x08
+    Length of sample data + Flag, 0x0C
+        1 Bit flag for SGXD type
+            0 is No embedded sample data
+            1 is Embedded sample data
+    
+    Consists of the following chunks:
+        BUSS, audio mixing settings? (optional)
+        RGND, soundbank definitions (optional)
+        SEQD, sequence data (optional)
+        WAVE, sample definitions (optional)
+        WSUR, surround sound definitions (optional)
+        WMKR, ??? (optional)
+        CONF, configuration settings (optional)
+        NAME, name definitions
+
+
+BUSS HEADER + DEFINITIONS (Optional), 0x10 + (0x30 per Definition) Bytes
+    BUSS, 0x00
+    Length of BUSS chunk, 0x04
+    NULL (Start of BUSS chunk), 0x08
+    Amount BUSS definitions, 0x0C
+    List of Definitions, 0x10 {
+        NULL (Start of Definition), 0x00
+        Offset to BUSS name, 0x04
+        Amount BUSS setting 1 definitions, 0x08
+        Amount BUSS setting 2 definitions, 0x09
+        NULL, 0x0A
+        NULL, 0x0C
+        Offset to list of BUSS setting 1 definitions, 0x10
+        Offset to list of BUSS setting 2 definitions, 0x14
+        Offset to list of BUSS settings, 0x18
+        Offset to Global BUSS variable settings (?), 0x1C
+        NULL, 0x20
+    }
+
+BUSS SETTING 1 DEFINITIONS (Optional), 0x10 Bytes
+    NULL (?), 0x00
+    Offset to BUSS variable, 0x04
+    NULL, 0x08
+
+BUSS SETTING 2 DEFINITIONS (Optional), 0x40 Bytes
+    Flag for Settings type (?), 0x00
+        0 is Reverb (?)
+        1 is Misc (?)
+    Offset to BUSS global variable (?), 0x04
+    Offset to BUSS local variable (?), 0x08
+    List of seven values (NULL or 0 to 7), 0x0C
+    Unknown, 0x14
+    BUSS setting ID, 0x18
+    Unknown, 0x1C
+    Left channel Volume (?), 0x20
+    Unknown, 0x24
+    Right channel Volume (?), 0x28
+    Unknown, 0x2C
+    Offset to settings, 0x30
+    NULL, 0x34
+
+BUSS SETTINGS (Optional), Variable Bytes
+    ~Variables of some sort~
+        ~First usually list of buss variables (buss_1/buss_2/Bus0/Bus1...)~
+        ~Might contain reverb (?) variables~
+        ~Might contain misc variables~
+    ~Audio processing settings~
+        ~Preset/type usually set first~
+            ~If NONE, variable settings set per channel~
+            ~If not NONE, dry and wet settings usually set~
+
+
+RGND HEADER + PROGRAMS (Optional), 0x10 + (0x08 per Program) Bytes
+    RGND, 0x00
+    Length of RGND chunk, 0x04
+    NULL (Start of RGND chunk), 0x08
+    Amount programs, 0x0C
+    List of Programs, 0x10 {
+        Amount associated instruments, 0x00
+        Offset to associated list of instruments, 0x04
+    }
+    
+RGND INSTRUMENTS (Optional), 0x38 Bytes
+    Priority? (0 to 15), 0x00
+    Group number?, 0x04
+    Noise clock? (0 to 60), 0x08
+        Usually 56
+    Unknown (Multiples of 10), 0x0C
+    Unknown, 0x0D
+    Unknown, 0x0E
+    Unknown, 0x0F
+    Unknown, 0x10
+    Unknown, 0x14
+    Lowest range of sample, 0x18
+    Highest range of sample, 0x19
+    NULL (?), 0x1A
+    Root key of sample, 0x1C
+        Modulo of 128+ and 127 can be used as semitone
+    Root key fine tuning (-99 to 99), 0x1D
+    Left channel Volume (?), 0x1E
+    Modifier 1 (?), 0x20
+    Modifier 2 (0 to 16?), 0x21
+    Modifier 3 (-100 to 100?), 0x22
+    Pan Control (-4 to 4), 0x23
+    Right channel Volume (?), 0x24
+    NULL (?), 0x26
+    Portamento travel time? (0 to 65535), 0x28
+    Modifier 4 (?), 0x2C
+    Modifier 5 (?), 0x2D
+    Modifier 6 (?), 0x2E
+    Modifier 7 (?), 0x2F
+    Unknown, 0x30
+    Corresponding sample ID (-1 is Noise?), 0x34
+#Formula to calculate desired sample rate using:
+#   Root key,
+#   Root key's known sample rate from WAVE section,
+#   Target note,
+#   Fine tuning of note
+#
+#   targetFrequency = rootFrequency * (2 ^ (1/12)) ^ (targetNote + (rootFineTune/100) - rootNote)
+
+
+SEQD HEADER + OFFSETS (Optional), 0x0C + (0x04 Per Offset) Bytes
+    SEQD, 0x00
+    Length of SEQD chunk, 0x04
+    NULL (Start of SEQD chunk), 0x08
+    Amount Sequence group offsets, 0x0C
+    List of Sequence Group offsets (NULL is Empty), 0x10
+    
+SEQD SEQUENCE GROUP + OFFSETS (Optional), 0x0C + (0x04 Per Offset) Bytes
+    NULL (Start of Sequence Group), 0x00
+    Amount Sequence offsets, 0x04
+    List of Sequence offsets (NULL is Empty), 0x08
+    
+SEQD SEQUENCE DATA (Optional), Variable Bytes
+    NULL (Start of Data), 0x00
+    Offset to sequence name (NULL is no name), 0x04
+    Sequence type, 0x08
+        0x0000 is request for SFX (likely not true MIDI data)
+        0x0001 is raw MIDI data (Format 1)
+    MIDI division (?), 0x0A
+    Left channel volume (?), 0x0C
+    Right channel volume (?), 0x0E
+    Size of sequence data, 0x10
+    Sequence Data, 0x14
+        ~Request data is Unknown~
+            ~0xFF is request end~
+        ~Raw MIDI uses MIDI specification~
+            ~CC 0x76 is unknown~
+            ~CC 0x77 is unknown~
+            ~CC 0x63 0x14 is loop start~
+            ~CC 0x63 0x1E is loop end~
+        
+        
+WAVE HEADER (Optional), 0x10 Bytes
+    WAVE, 0x00
+    Length of WAVE chunk, 0x04
+    NULL (Start of WAVE chunk), 0x08
+    Amount sample definitions, 0x0C
+
+WAVE DEFINITIONS (Optional), 0x38 Bytes
+    Voice (?), 0x00
+        0 to 8 (?)
+        Just spit-ballin' here...
+    Offset to sample name (NULL is no name), 0x04
+    Codec, 0x08
+        0x01, PCM16 Big Endian (headerless)
+        0x02, Ogg Vorbis
+        0x03, Sony ADPCM (headerless)
+        0x04, Sony Atrac3Plus
+        0x05, Sony Short ADPCM (headerless)
+        0x06, Volby AC-3
+    Number of channels, 0x09
+    NULL, 0x0A
+    Sample rate, 0x0C
+    Info type of following value, 0x10
+        0x00, NULL
+        0x30 and 0x40, size of sample data
+        0x60, ???
+        0x80 and 0x90, block size of sample data
+    Corresponding value to info type, 0x14
+    Left channel volume (?), 0x18
+    Right channel volume (?), 0x1A
+    NULL, 0x1C
+    Length of sample, 0x20
+    Start of loop after conversion (signed), 0x24
+        -1, starts at end of sample (no loop)
+    End of loop after conversion (signed), 0x28
+        -1, ends at end of sample
+    Length of sample stream or interleave, 0x2C
+    Offset to sample stream from start of sample data, 0x30
+    Length of sample stream (zero-padded) or interleave, 0x34
+
+
+WSUR HEADER + DEFINITIONS (Optional), 0x10 + (0x08 per Definition) Bytes
+    WSUR, 0x00
+    Length of WSUR chunk, 0x04
+    NULL (Start of WSUR chunk), 0x08
+    Amount Surround definitions, 0x0C
+    List of Surround definitions, 0x08 {
+        Amount channel definitions, 0x00
+        Offset to Channel definitions(?), 0x04
+    }
+
+WSUR CHANNEL DEFINITIONS (Optional), 0x08 Bytes
+    Unknown (Might be flag for usage), 0x00
+    Channel ID (?), 0x01
+    Unknown (Might be flag for output channel), 0x02
+    Left channel volume (?), 0x04
+    Right channel volume (?), 0x06
+
+
+CONF HEADER + DEFINITIONS (Optional), 0x10 + (0x0C per Definition) Bytes
+    CONF, 0x00
+    Length of CONF chunk, 0x04
+    NULL (Start of CONF chunk), 0x08
+    Amount Configuration definitions, 0x0C
+    List of Configuration definitions, 0x10 {
+        NULL, 0x00
+        Offset to Configuration name, 0x04
+        Offset to Configuration settings, 0x08
+    }
+
+CONF SETTINGS (Optional), Variable Bytes
+    ~Audio configurations~
+
+
+NAME HEADER, 0x10 Bytes
+    NAME, 0x00
+    Length of NAME chunk, 0x04
+    NULL (Start of NAME chunk), 0x08
+    Amount name definitions, 0x0C
+
+NAME DEFINITIONS, 0x08 Bytes
+    Name ID, 0x00
+    Global ID, 0x02
+    Name type, 0x03
+        0x00, Bank name
+        0x10, ???
+        0x20 to 0x30    , Seqd and Wave name
+        0x30 to 0x40 (?), Wsur name
+        0x40 to 0x50 (?), Buss name
+        0x50 to 0x60 (?), Wmkr name (?)
+        0x60 to 0x70 (?), Conf name
+    Offset to name, 0x04

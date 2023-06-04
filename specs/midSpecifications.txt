@@ -1,0 +1,265 @@
+MIDI HEADER, 0x0E Bytes
+    MThd, 0x00
+    Size of header (Always 6), 0x04
+    Format of file, 0x08
+        0 = 1 track chunk
+        1 = several vertically dimensional track chunks
+        2 = several horizontally dimensional, individual track chunks
+    Number of tracks, 0x0A
+    Division, 0x0C
+        If SMPTE:
+            1 FFFFFFF TTTTTTTT
+                1 is negative bit
+                FFFFFFF is fps
+                    24, 25, 29 (or drop 30), 30
+                TTTTTTTT is ticks per frame
+        If PPQN:
+            0 ttttttttttttttt
+                ttttttttttttttt is Pulse per quarter-note (PPQN)
+                    96 = quarter-note
+                    48 = eigth-note
+                    24 = sixteenth-note
+                    etc...
+
+MIDI TACK HEADER, 0x08 Bytes
+    MTrk, 0x00
+    Size of track, 0x04
+
+MIDI TRACK, Variable Bytes
+    Delta Time
+        Variable Length Value
+        Number of ticks after previous event, Depends on MS bit of byte
+            0 = no more bytes in delta time
+            1 = at least one more byte in delta time
+    Event
+        Status byte, 0x01 Byte
+            0x8X is Note off (0x8X 0xNN 0xVV)
+                X is channel
+                0xNN is Note (0x00 to 0x7F)
+                0xVV is Release velocity (0x00 to 0x7F)
+            0x9X is Note on (0x9X 0xNN 0xVV)
+                X is channel
+                0xNN is Note (0x00 to 0x7F)
+                0xVV is Velocity (0x00 to 0x7F)
+            0xAX is Key pressure (0xAX 0xNN 0xPP)
+                X is channel
+                0xNN is Note (0x00 to 0x7F)
+                0xPP is Applied pressure (0x00 to 0x7F)
+            0xBX is controller (0xBX 0xCC 0xVV)
+                X is channel
+                0xCC is Continuous controller
+                    0x00 is Bank select (Coarse)
+                    0x01 is Modulation wheel (Coarse)
+                    0x02 is Breath controller (Coarse)
+                    0x04 is Foot controller (Coarse)
+                    0x05 is Portamento time (Coarse)
+                    0x06 is Data entry (Coarse)
+                        RPNC 0x00 and RPNF 0x00 is Pitch Bend Sensitivity (Coarse)
+                        RPNC 0x00 and RPNF 0x01 is Master Fine Tuning (Coarse)
+                        RPNC 0x00 and RPNF 0x02 is Master Coarse Tuning (Coarse)
+                        RPNC 0x7F and RPNF 0x7F is RPN NULL (Coarse)
+                    0x07 is Channel volume (Coarse) (formerly Main volume)
+                    0x08 is Balance (Coarse)
+                    0x0A is Pan (Coarse)
+                    0x0B is Expression (Coarse)
+                    0x0C is Effect control 1 (Coarse)
+                    0x0D is Effect control 2 (Coarse)
+                    0x10 is General purpose controller 1 (Coarse)
+                    0x11 is General purpose controller 2 (Coarse)
+                    0x12 is General purpose controller 3 (Coarse)
+                    0x13 is General purpose controller 4 (Coarse)
+                    0x20 is Bank select (Fine)
+                    0x21 is Modulation wheel (Fine)
+                    0x22 is Breath controller (Fine)
+                    0x24 is Foot controller (Fine)
+                    0x25 is Portamento time (Fine)
+                    0x26 is Data entry (Fine)
+                        RPNC 0x00 and RPNF 0x00 is Pitch Bend Sensitivity (Fine)
+                        RPNC 0x00 and RPNF 0x01 is Master Fine Tuning (Fine)
+                        RPNC 0x00 and RPNF 0x02 is Master Coarse Tuning (Fine)
+                        RPNC 0x7F and RPNF 0x7F is RPN NULL (Fine)
+                    0x27 is Channel volume (Fine)
+                    0x28 is Balance (Fine)
+                    0x2A is Pan (Fine)
+                    0x2B is Expression (Fine)
+                    0x2C is Effect control 1 (Fine)
+                    0x2D is Effect control 2 (Fine)
+                    0x40 is Hold (damper, sustain) pedal 1 (On/Off)
+                    0x41 is Portamento pedal (On/Off)
+                    0x42 is Sostenuto pedal (On/Off)
+                    0x43 is Soft pedal (On/Off)
+                    0x44 is legato pedal (On/Off)
+                    0x45 is Hold pedal 2 (On/Off)
+                    0x46 is Sound controller 1 (Default is sound variation)
+                    0x47 is Sound controller 2 (Default is timbre / harmonic intensity / filter resonance)
+                    0x48 is Sound controller 3 (Default is release time)
+                    0x49 is Sound controller 4 (Default is attack time)
+                    0x4A is Sound controller 5 (Default is brightness or cutoff frequency)
+                    0x4B is Sound controller 6 (Default is decay time)
+                    0x4C is Sound controller 7 (Default is vibrato rate)
+                    0x4D is Sound controller 8 (Default is vibrato depth)
+                    0x4E is Sound controller 9 (Default is vibrato delay)
+                    0x4F is Sound controller 10 (Default is undeFined)
+                    0x50 is General purpose controller 5
+                    0x51 is General purpose controller 6
+                    0x52 is General purpose controller 7
+                    0x53 is General purpose controller 8
+                    0x54 is Portamento control
+                    0x58 is High resolution velocity prefix
+                    0x5B is Effect 1 depth (Default is reverb send level, formerly external effect depth)
+                    0x5C is Effect 2 depth (Formerly tremolo depth)
+                    0x5D is Effect 3 depth (Default is chorus send level, formerly chorus depth)
+                    0x5E is Effect 4 depth (Formerly celeste depth)
+                    0x5F is Effect 5 depth (Formerly phaser level)
+                    0x60 is Data button increment
+                    0x61 is Data button decrement
+                    0x62 is Non-registered parameter (Coarse)
+                    0x63 is Non-registered parameter (Fine)
+                        NRPNC and NRPNF is Standard Specific
+                    0x64 is Registered parameter (Coarse)
+                    0x65 is Registered parameter (Fine)
+                        RPNC 0x00 and RPNF 0x00 is Pitch Bend Sensitivity
+                        RPNC 0x00 and RPNF 0x01 is Master Fine Tuning
+                        RPNC 0x00 and RPNF 0x02 is Master Coarse Tuning
+                        RPNC 0x7F and RPNF 0x7F is RPN NULL
+                    0x78 is All sound off (None)
+                    0x79 is All controllers off (None)
+                    0x7A is Local control (On/Off)
+                    0x7B is All notes off (None)
+                    0x7C is Omni mode off (None)
+                    0x7D is Omni mode on (None)
+                    0x7E is Mono operation and all notes off
+                    0x7F is Poly operation and all notes off (None)
+                0xVV is Controller value (0x00 to 0x7F)
+                    If Default, Ranged
+                    If None, Always 0x00
+                    If On/Off, 0x40+ is On and <0x40 is Off
+            0xCX is Programme change (0xCX 0xBB)
+                X is channel
+                0xBB is Selected programme (0x00 to 0x7F)
+            0xDX is Channel pressure (0xDX 0xPP)
+                X is channel
+                0xBB is Applied pressure (0x00 to 0x7F)
+            0xEX is Pitch bend (0xEX 0xSSSS)
+                X is channel
+                0xSSSS is Pitch value (0SSSSSSS 0SSSSSSS)
+                    14bit value (0x0000 to 0x7F7F)
+                    0x0000 is Usually 2 semitones lower
+                    0x4000 is No change
+                    0x7F7F is Usually 2 semitones higher
+            0xF0/0xF7 is System exclusive (0xF0 0xII 0x... 0xF7)
+                0xII is Manufacturer ID
+                    0x00 is Combined ID (0xF0 0x00 0xIIII 0x... 0xF7)
+                    0x01 is Sequential Circuits
+                    0x02 is Big Briar
+                    0x03 is Octave / Plateau
+                    0x04 is Moog
+                    0x05 is Passport Designs
+                    0x06 is Lexicon
+                    0x07 is Kurzweil
+                    0x08 is Fender
+                    0x09 is Gulbransen
+                    0x0A is Delta Labs
+                    0x0B is Sound Comp.
+                    0x0C is General Electro
+                    0x0D is Techmar
+                    0x0E is Matthews Research
+                    0x10 is Oberheim
+                    0x11 is PAIA
+                    0x12 is Simmons
+                    0x13 is Gentle Electric
+                    0x14 is Fairlight
+                    0x15 is JL Cooper
+                    0x16 is Lowery
+                    0x17 is Lin
+                    0x18 is Emu
+                    0x1B is Peavey
+                    0x20 is Bon Tempi
+                    0x21 is S.I.E.L.
+                    0x23 is SyntheAxe
+                    0x24 is Hohner
+                    0x25 is Crumar
+                    0x26 is Solton
+                    0x27 is Jellinghous Ms
+                    0x28 is CTS
+                    0x29 is PPG
+                    0x2F is Elka
+                    0x40 is Kawai
+                    0x41 is Roland
+                    0x42 is Korg
+                    0x43 is Yamaha
+                    0x44 is Casio
+                    0x45 is Akai
+                    0x7D is Educational
+                    0x7E is Universal (Non-real time)
+                    0x7F is Universal (Real time)
+            0xF1 is MIDI time follows other device
+            0xF2 is Cue point in sequence to be ready
+            0xF3 is Set sequence to play
+            0xF6 is Tune request
+            0xF8 is MIDI clock
+            0xFA is MIDI start
+            0xFB is MIDI continue
+            0xFC is MIDI stop
+            0xFE is MIDI connection exists
+            0xFF is Meta event (0xFF 0xTT 0xSS 0x...) or reset (0xFF)
+                0xTT is Meta type
+                    0x00 is Sequence number (0xFF 0x00 0x02 0xIIII)
+                        ~Must occur at beginning of track~
+                        0xIIII is Sequence number
+                    0x01 is Text event (0xFF 0x01 0xSS 0x...)
+                        0xSS is Size of string
+                        0x... is String
+                    0x02 is Copyright (0xFF 0x02 0xSS 0x...)
+                        ~Must occur at beginning of first track~
+                        0xSS is Size of string
+                        0x... is String
+                    0x03 is Track name (0xFF 0x03 0xSS 0x...)
+                        ~Must occur at beginning of track~
+                        0xSS is Size of string
+                        0x... is String
+                    0x04 is Instrument name (0xFF 0x04 0xSS 0x...)
+                        0xSS is Size of string
+                        0x... is String
+                    0x05 is Lyrics (0xFF 0x05 0xSS 0x...)
+                        0xSS is Size of string
+                        0x... is String
+                    0x06 is Marker (0xFF 0x06 0xSS 0x...)
+                        0xSS is Size of string
+                        0x... is String
+                    0x07 is Cue (0xFF 0x07 0xSS 0x...)
+                        0xSS is Size of string
+                        0x... is String
+                    0x20 is Channel prefix (0xFF 0x20 0x01 0xMM)
+                        0xMM is MIDI channel
+                    0x2F is End of track (0xFF 0x2F 0x00)
+                    0x51 is Tempo (0xFF 0x51 0x03 0xTTTTTT)
+                        ~BPM = (TS Denomintor / 4) * (60000000 / Tempo)~
+                        0xTTTTTT is Microseconds per quarter-note
+                    0x54 is SMPTE offset (0xFF 0x54 0x05 0xHH 0xMM 0xSS 0xRR 0xSR)
+                        0xHH is Hours and frame rate
+                            0 SS HHHHH
+                                SS is Fps
+                                    00 = 24Fps
+                                    01 = 25Fps
+                                    10 = 29.97Fps
+                                    11 = 30Fps
+                                HHHHH is Hours (0 to 23)
+                        0xMM is Minutes (0 to 59)
+                        0xSS is Seconds (0 to 59)
+                        0xRR is Frames (0 to Fps-1)
+                        0xSR is Sub-frames (0 to 99)
+                    0x58 is Time signature (0xFF 0x58 0x04 0xNN 0xXX 0xTT 0xQQ)
+                        0xNN is Time signature numerator
+                        0xXX is Time signature denominator (2^0xXX)
+                        0xTT is Ticks per click
+                            ~Clicks per Note = TPC / PPQN~
+                        0xQQ is Amount notated 32nd notes per quarter note (Default is 8)
+                    0x59 is Key signature (0xFF 0x59 0x02 0xKK 0xSS)
+                        0xKK is amount Amount Flats(-)/Sharps(+) (-7 to 7)
+                        0xSS is Scale, 1 byte
+                            0 is Major
+                            1 is Minor
+                    0x7F is Sequencer exclusive (0xFF 0x7F 0xSS 0x...)
+                        0xSS is Size of data
+                        0x... is Data

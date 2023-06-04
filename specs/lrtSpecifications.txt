@@ -1,0 +1,53 @@
+HEADER + QUARTER EVENT ID'S, 0x24 + (0x04 per ID) Bytes
+    LBRT, 0x00
+    Offset of sequence data, 0x04
+    Notated 32nd-notes per quarter note, 0x08
+    Pulses per quarter note, 0x0C
+    Amount tracks (?), 0x10
+    MIDI format (?), 0x14
+    Unknown (Usually 256), 0x18
+    Amount events, 0x1C
+    Amount quarter event offsets, 0x20
+    List of quarter event offsets, 0x24 {
+        Offset event, 0x00
+    }
+
+EVENT, 0x1C Bytes
+    Event ID (0x00 is Start and End of track), 0x00
+    Delta time (Microseconds per quarter note), 0x04
+    Event time value, 0x08
+        For tempo change:
+            Tempo = 60000000/t_value
+        For note on/off:
+            Duration of held note in microseconds
+        For running status:
+            Current tempo in microseconds
+    Event value 1, 0x0C
+        For control events:
+            Corresponding value
+        For note on/off:
+            Note pitch
+    Event value 2 (?), 0x10
+    Event value Type, 0x12
+        For meta events:
+            Corresponding meta event type
+        For control events:
+            Corresponding control type
+        For note on/off:
+            Corresponding program in SGD
+    Note on velocity, 0x14
+    Note on pitch bend (?), 0x16
+    Channel, 0x18
+    Status byte, 0x19
+        0x00 (Running status?)
+        0x9X <NoteNum Velocity> (Note on/off)
+        0xBX <ControlNum Value> (Controller)
+            0x00 (Bank select MSB)
+            0x63 (NRPN Parameter MSB)
+                0x14 (Loop start)
+                0x1E (Loop end)
+        0xFF <Type Size Value> (Meta event)
+            0x2F <0x00> (End of track)
+            0x51 <0x03 newTempo> (Change tempo)
+    Note off velocity (?), 0x1A
+    Note off pitch bend (?), 0x1B

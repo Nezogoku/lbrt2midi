@@ -1,0 +1,440 @@
+SOUNDFONT BANK HEADER, 0x0C Bytes
+    RIFF, 0x00
+    Size of chunk, 0x04
+    sfbk, 0x08
+    
+    Consists of the following chunks:
+        LIST (INFO), List of File information
+            ifil, File version
+            isng, Target sound engine
+            INAM, Name
+            irom, Rom name (Optional)
+            iver, Rom version (Optional)
+            ICRD, Creation date (Optional)
+            IENG, Name of engineer(s) (Optional)
+            IPRD, Intended product (Optional)
+            ICOP, Copyright information (Optional)
+            ICMT, General comments (Optional)
+            ISFT, Used software package (Optional)
+        LIST (sdta), List of Sample data
+            smpl, 16bit PCM sample table (Optional)
+            sm24, 24bit PCM sample table (Optional)
+        LIST (pdta), List of Soundbank header data
+            phdr, Preset Header table
+            pbag, Preset Index table
+            pmod, Preset Modulator table
+            pgen, Preset Generator table
+            inst, Instrument Identifiers table
+            ibag, Instrument Index table
+            imod, Instrument Modulator table
+            igen, Instrument Generator table
+            shdr, Sample Header table
+    
+    Modulator types:
+        C IIIIIII TTTTTT P D
+            C is Controller source Flag
+                0 is General Controller
+                1 is Continuous Controller
+            IIIIIII is Controller source Index
+                General Controller
+                    0x00 is No controller
+                    0x01 is No controller
+                    0x03 is Note velocity
+                    0x0A is Poly-pressure
+                    0x0D is Channel-pressure
+                    0x0E is Pitch wheel
+                    0x10 is Pitch wheel sensitivity
+                Continuous Controller
+                    0x01 is Modulation wheel (Coarse)
+                    0x02 is Breath controller (Coarse)
+                    0x04 is Foot controller (Coarse)
+                    0x05 is Portamento time (Coarse)
+                    0x07 is Channel volume (Coarse)
+                    0x08 is Balance (Coarse)
+                    0x0A is Pan (Coarse)
+                    0x0B is Expression (Coarse)
+                    0x0C is Effect control 1 (Coarse)
+                    0x0D is Effect control 2 (Coarse)
+                    0x10 is General purpose controller 1 (Coarse)
+                    0x11 is General purpose controller 2 (Coarse)
+                    0x12 is General purpose controller 3 (Coarse)
+                    0x13 is General purpose controller 4 (Coarse)
+                    0x21 is Modulation wheel (Fine)
+                    0x22 is Breath controller (Fine)
+                    0x24 is Foot controller (Fine)
+                    0x25 is Portamento time (Fine)
+                    0x27 is Channel volume (Fine)
+                    0x28 is Balance (Fine)
+                    0x2A is Pan (Fine)
+                    0x2B is Expression (Fine)
+                    0x2C is Effect control 1 (Fine)
+                    0x2D is Effect control 2 (Fine)
+                    0x40 is Hold (damper, sustain) pedal 1 (On/Off)
+                    0x41 is Portamento pedal (On/Off)
+                    0x42 is Sostenuto pedal (On/Off)
+                    0x43 is Soft pedal (On/Off)
+                    0x44 is legato pedal (On/Off)
+                    0x45 is Hold pedal 2 (On/Off)
+                    0x46 is Sound controller 1 (Default is sound variation)
+                    0x47 is Sound controller 2 (Default is timbre / harmonic intensity / filter resonance)
+                    0x48 is Sound controller 3 (Default is release time)
+                    0x49 is Sound controller 4 (Default is attack time)
+                    0x4A is Sound controller 5 (Default is brightness or cutoff frequency)
+                    0x4B is Sound controller 6 (Default is decay time)
+                    0x4C is Sound controller 7 (Default is vibrato rate)
+                    0x4D is Sound controller 8 (Default is vibrato depth)
+                    0x4E is Sound controller 9 (Default is vibrato delay)
+                    0x4F is Sound controller 10 (Default is undeFined)
+                    0x50 is General purpose controller 5
+                    0x51 is General purpose controller 6
+                    0x52 is General purpose controller 7
+                    0x53 is General purpose controller 8
+                    0x54 is Portamento control
+                    0x58 is High resolution velocity prefix
+                    0x5B is Effect 1 depth (Default is Reverb send level, formerly External effect depth)
+                    0x5C is Effect 2 depth (Formerly Tremolo depth)
+                    0x5D is Effect 3 depth (Default is Chorus send level, formerly Chorus depth)
+                    0x5E is Effect 4 depth (Formerly Celeste depth)
+                    0x5F is Effect 5 depth (Formerly Phaser level)
+                    0x60 is Data button increment
+                    0x61 is Data button decrement
+            TTTTTT is Controller continuity
+                0x00 is Linear
+                0x01 is Concave
+                0x02 is Convex
+                0x03 is Switch
+            P is Polarity
+                0 is Unipolar (0 to 1)
+                1 is Bipolar (-1 to 1)
+            D is Direction
+                0 is Ascending
+                1 is Descending
+
+    Generator types:
+        0x0000 is Data-points beyond sample start (Instrument only)
+        0x0001 is Data-points beyond sample end (Instrument only)
+        0x0002 is Data-points beyond sample loop start (Instrument only)
+        0x0003 is Data-points beyond sample loop end (Instrument only)
+        0x0004 is 32768 Data-points beyond sample start (Instrument only)
+        0x0005 is Degree (cents) Modulation LFO influences Pitch
+        0x0006 is Degree (cents) Vibrato LFO influences Pitch
+        0x0007 is Degree (cents) Modulation Envelope influences Pitch
+        0x0008 is Cutoff/Resonant frequency (cents) of LPF
+        0x0009 is Height (centibels) above DC gain for Cutoff frequency
+        0x000A is Degree (cents) Modulation LFO influences Cutoff frequency
+        0x000B is Degree (cents) Modulation Envelope influences Cutoff frequency
+        0x000C is 32768 Data-points beyond sample end (Instrument only)
+        0x000D is Degree (centibels) Modulation LFO influences Volume
+        0x000E is Reserved
+        0x000F is Degree (0.1% units) Note sent to Chorus Effects Processor
+        0x0010 is Degree (0.1% units) Note sent to Reverb Effects Processor
+        0x0011 is Degree (0.1% units) Note sent to left/right channels (Pan)
+        0x0012 is Reserved
+        0x0013 is Reserved
+        0x0014 is Reserved
+        0x0015 is Delay (timecents) until Modulation LFO
+        0x0016 is Frequency (cents) of Modulation LFO triangular period
+        0x0017 is Delay (timecents) until Vibrato LFO
+        0x0018 is Frequency (cents) of Vibrato LFO triangular period
+        0x0019 is Delay (timecents) until Attack Modulation Envelope
+        0x001A is Time (timecents) until peak of Attack Modulation Envelope from Delay
+        0x001B is Time (timecents) peak of Attack Modulation Envelope Held
+        0x001C is Time (timecents) for 100% change of Modulation Envelope during Decay
+        0x001D is Decrease (0.1% units) of Modulation Envelope during Decay
+        0x001E is Time (timecents) for 100% change of Modulation Envelope during Release
+        0x001F is Degree (timecents per key) Modulation Envelope Hold decreased by increasing key
+        0x0020 is Degree (timecents per key) Modulation Envelope Hold decreased by increasing key
+        0x0021 is Delay (timecents) until Volume Envelope
+        0x0022 is Time (timecents) until peak of Volume Envelope from Volume Envelope Delay
+        0x0023 is Time (timecents) peak of Volume Envelope Held
+        0x0024 is Time (timecents) for 100% change of Volume Envelope during Decay
+        0x0025 is Decrease (centibels) of Volume Envelope during Decay
+        0x0026 is Time (timecents) for 100% change of Volume Envelope during Release
+        0x0027 is Degree (timecents per key) Volume Envelope Hold decreased by increasing key
+        0x0028 is Degree (timecents per key) Volume Envelope Hold decreased by increasing key
+        0x0029 is Instrument ID (Preset only)
+        0x002A is Reserved
+        0x002B is Minimum and Maximum MIDI key
+        0x002C is Minimum and Maximum MIDI velocity
+        0x002D is 32768 Data-points beyond sample loop start (Instrument only)
+        0x002E is New MIDI key (Instrument only)
+        0x002F is New MIDI velocity (Instrument only)
+        0x0030 is Attenuation (centibels) below full scale
+        0x0031 is Reserved
+        0x0032 is 32768 Data-points beyond sample loop end (Instrument only)
+        0x0033 is Semitones added to Pitch (Course tune)
+        0x0034 is Cents added to Pitch (Fine tune)
+        0x0035 is Sample ID (Instrument only)
+        0x0036 is Sample mode (Instrument only)
+            0x0000 is No loop
+            0x0001 is Continuous loop
+            0x0002 is Unused (No loop)
+            0x0003 is Depression loop
+        0x0037 is Reserved
+        0x0038 is Degree MIDI key influences Pitch
+        0x0039 is Instrument Class ID of terminated instruments (Instrument only)
+        0x003A is Sample's initial samplerate's root key (Instrument only)
+        0x003B is Reserved
+        0x003A is Reserved (End of operations)
+        
+        ~An octave is a value with a factor of two~
+        ~A semitone is 1/12 of an octave (twelfth root of two)~
+        ~A cent is 1/100 of a semitone (twelve-hundredth root of two)~
+        ~A decibel is the twentieth root of ten~
+        ~A centibel is 1/10 of a decibel (two-hundredth root of ten)~
+        ~A timecent is 1/1200 of an octave (twelve-hundredth root of two)~
+        ~Key range generator (0x002B) always first in table~
+        ~Velocity range generator (0x002C) only preceded by Key range generator (0x002B) in table~
+        ~Sample ID generator (0x0035) always last in non-global instrument table~
+        ~Instrument ID generator (0x0029) always last in non-global preset table~
+
+
+LIST OF FILE INFORMATION HEADER, 0x0C Bytes
+    LIST, 0x00
+    Size of chunk, 0x04
+    List type (always INFO), 0x08
+
+SOUNDFONT VERSION, 0x0A Bytes
+    ifil, 0x00
+    Size of sub-chunk, 0x04
+    Soundfont version, 0x08
+
+SOUNDFONT TARGET SOUND ENGINE, 0x08 + (Size of string) Bytes
+    isng, 0x00
+    Size of sub-chunk, 0x04
+    Target sound engine, 0x08
+        NULL-padded and evenly aligned
+        Must have atleast 1 or atmost 2 NULL bytes
+        Maximum size is 254 + 2 NULL bytes
+
+NAME, 0x08 + (Size of string) Bytes
+    INAM, 0x00
+    Size of sub-chunk, 0x04
+    Soundfont name, 0x08
+        NULL-padded and evenly aligned
+        Must have atleast 1 or atmost 2 NULL bytes
+        Maximum size is 254 + 2 NULL bytes
+
+SOUNDFONT ROM NAME (Optional), 0x08 + (Size of string) Bytes
+    irom, 0x00
+    Size of sub-chunk, 0x04
+    Rom name, 0x08
+        NULL-padded and evenly aligned
+        Must have atleast 1 or atmost 2 NULL bytes
+        Maximum size is 254 + 2 NULL bytes
+        
+SOUNDFONT ROM VERSION (Optional), 0x0A Bytes
+    iver, 0x00
+    Size of sub-chunk, 0x04
+    Rom version, 0x08
+
+CREATION DATE (Optional), 0x08 + (Size of string) Bytes
+    ICRD, 0x00
+    Size of sub-chunk, 0x04
+    Creation date, 0x08
+        Conventionally "Month day, year"
+        NULL-padded and evenly aligned
+        Must have atleast 1 or atmost 2 NULL bytes
+        Maximum size is 254 + 2 NULL bytes
+
+SOUND DESIGNERS/ENGINEERS (Optional), 0x08 + (Size of string) Bytes
+    IENG, 0x00
+    Size of sub-chunk, 0x04
+    Sound engineers, 0x08
+        NULL-padded and evenly aligned
+        Must have atleast 1 or atmost 2 NULL bytes
+        Maximum size is 254 + 2 NULL bytes
+
+INTENDED PRODUCT (Optional), 0x08 + (Size of string) Bytes
+    IPRD, 0x00
+    Size of sub-chunk, 0x04
+    Intended product, 0x08
+        NULL-padded and evenly aligned
+        Must have atleast 1 or atmost 2 NULL bytes
+        Maximum size is 254 + 2 NULL bytes
+
+COPYRIGHT (Optional), 0x08 + (Size of string) Bytes
+    ICOP, 0x00
+    Size of sub-chunk, 0x04
+    Soundfont copyright, 0x08
+        NULL-padded and evenly aligned
+        Must have atleast 1 or atmost 2 NULL bytes
+        Maximum size is 254 + 2 NULL bytes
+
+GENERAL COMMENTS (Optional), 0x08 + (Size of string) Bytes
+    ICMT, 0x00
+    Size of sub-chunk, 0x04
+    Comments, 0x08
+        NULL-padded and evenly aligned
+        Must have atleast 1 or atmost 2 NULL bytes
+        
+SOFTWARE (Optional), 0x08 + (Size of string) Bytes
+    ISFT, 0x00
+    Size of sub-chunk, 0x04
+    Software used, 0x08
+        NULL-padded and evenly aligned
+        Must have atleast 1 or atmost 2 NULL bytes
+        Maximum size is 254 + 2 NULL bytes
+
+
+LIST OF SAMPLE DATA HEADER (Optional), 0x0C Bytes
+    LIST, 0x00
+    Size of chunk, 0x04
+    List type (always sdta), 0x08
+
+PCM16LE SAMPLE DATA (Optional), 0x08 + (Size of all samples) Bytes
+    smpl, 0x00
+    Size of sub-chunk, 0x04
+    List of samples, 0x08
+        Each followed by minimum of 46 NULL bytes
+
+PCM24LE SAMPLE DATA (Optional), 0x08 + (Size of all samples) Bytes
+    sm24, 0x00
+    Size of sub-chunk, 0x04
+    List of samples, 0x08
+        Samples made up of least-significant bytes of corresponding PCM16LE samples
+        Each followed by minimum of 46 NULL bytes
+
+
+LIST OF SOUNDBANK HEADERS HEADER, 0x0C Bytes
+    LIST, 0x00
+    Size of chunk, 0x04
+    List type (always pdta), 0x08
+
+PRESET HEADER TABLE, 0x08 + (0x26 per Header) Bytes
+    phdr, 0x00
+    Size of sub-chunk, 0x04
+    List of Preset headers, 0x08 {
+        Preset name (NULL-padded), 0x00
+        Preset ID, 0x14
+        Bank ID, 0x16
+        Zone ID, 0x18
+        Library (reserved), 0x1A
+        Genre (reserved), 0x1E
+        Morphology (reserved), 0x22
+        
+        ~Additional header (NULLED, name "EOP") acts as terminator~
+    }
+
+PRESET ZONE TABLE, 0x08 + (0x04 per Indices) Bytes
+    pbag, 0x00
+    Size of sub-chunk, 0x04
+    List of Preset indices, 0x08 {
+        Generator ID, 0x00
+        Modifier ID, 0x02
+        
+        ~Additional table (NULLED) acts as terminator~
+    }
+
+PRESET MODULATOR TABLE, 0x08 + (0x0A per Modulator) Bytes
+    pmod, 0x00
+    Size of sub-chunk, 0x04
+    List of Preset modulators, 0x08 {
+        Source, 0x00
+        Destination, 0x02
+        Degree of modulation, 0x04
+        Degree of control on modulation, 0x06
+        Transformation of source before modulation, 0x08
+        
+        ~Additional preset info (NULLED) acts as terminator~
+    }
+
+PRESET GENERATOR TABLE, 0x08 + (0x04 per Generator) Bytes
+    pgen, 0x00
+    Size of sub-chunk, 0x04
+    List of Preset generators, 0x08 {
+        Generator type, 0x00
+        Generator value, 0x02
+            Range is two 8-bit values for low and high range
+            Unsigned is one unsigned 16-bit value
+            Signed is one signed 16-bit value
+        
+        ~Additional generator (NULLED) acts as terminator~
+    }
+
+INSTRUMENT IDENTIFIERS TABLE, 0x08 + (0x16 per Identifiers) Bytes
+    inst, 0x00
+    Size of sub-chunk, 0x04
+    List of Instrument identifiers, 0x08 {
+        Instrument name (NULL-padded), 0x00
+        Zone ID, 0x14
+        
+        ~Additional identifier (NULLED, name "EOI") acts as terminator~
+    }
+
+INSTRUMENT ZONE TABLE, 0x08 + (0x04 per Indices) Bytes
+    ibag, 0x00
+    Size of sub-chunk, 0x04
+    List of Instrument indices, 0x08 {
+        Generator ID, 0x00
+        Modifier ID, 0x02
+        
+        ~Additional table (NULLED) acts as terminator~
+    }
+
+INSTRUMENT MODULATOR TABLE, 0x08 + (0x0A per Modulator) Bytes
+    imod, 0x00
+    Size of sub-chunk, 0x04
+    List of Instrument modulators, 0x08 {
+        Source, 0x00
+        Destination, 0x02
+        Degree of modulation, 0x04
+        Degree of control on modulation, 0x06
+        Transformation of source before modulation, 0x08
+        
+        ~Additional instrument info (NULLED) acts as terminator~
+    }
+
+INSTRUMENT GENERATOR TABLE, 0x08 + (0x04 per Generator) Bytes
+    igen, 0x00
+    Size of sub-chunk, 0x04
+    List of Instrument generators, 0x08 {
+        Generator type, 0x00
+        Generator value, 0x02
+            Range is two 8-bit values for low and high range
+            Unsigned is one unsigned 16-bit value
+            Signed is one signed 16-bit value
+        
+        ~Additional generator (NULLED) acts as terminator~
+    }
+
+SAMPLE HEADER TABLE, 0x08 + (0x2E per Header) Bytes
+    shdr, 0x00
+    Size of sub-chunk, 0x04
+    List of Sample headers, 0x08 {
+        Sample name (NULL-padded), 0x00
+        Sample start ID, 0x14
+            Relative to PCM16LE SAMPLE list
+        Sample end ID, 0x18
+            Relative to PCM16LE SAMPLE list
+            Minimum length is 48 data-points
+        Sample loop start ID, 0x1C
+            Relative to PCM16LE SAMPLE list
+            Minimum 8 data-points preceding
+        Sample loop end ID, 0x20
+            Relative to PCM16LE SAMPLE list
+            Minimum 8 data-points following
+            Minimum length is 32 data-points
+        Samplerate (hertz), 0x24
+            Minimum 400 hertz
+            Maximum 50000 hertz
+        Sample root key, 0x28
+            Default is 60
+            Unpitched is conventionally 255
+        Sample pitch correction (cents, signed), 0x29
+        Sample link, 0x2A
+            If Mono, Unused
+            If Left/Right, Sample Header ID
+            If Linked, Undefined
+        Sample link type, 0x2C
+            0x0001 is Mono channel (RAM)
+            0x0002 is Stereo-Right channel (RAM)
+            0x0004 is Stereo-Left channel (RAM)
+            0x0008 is Linked channel (RAM)
+            0x8001 is Mono channel (ROM)
+            0x8002 is Stereo-Right channel (ROM)
+            0x8004 is Stereo-Left channel (ROM)
+            0x8008 is Linked channel (ROM)
+        
+        ~Additional header (NULLED, name "EOS") acts as terminator~
+    }
