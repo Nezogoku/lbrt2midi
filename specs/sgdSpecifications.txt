@@ -174,10 +174,10 @@ WAVE DEFINITIONS (Optional), 0x38 Bytes
     NULL, 0x0A
     Sample rate, 0x0C
     Info type of following value, 0x10
-        0x00, NULL
-        0x30 and 0x40, size of sample data
-        0x60, ???
-        0x80 and 0x90, block size of sample data
+        0x00 is NULL
+        0x30/0x40 is size of sample data
+        0x60 is unknown
+        0x80/0x90 is block size of sample data
     Corresponding value to info type, 0x14
     Left channel volume (?), 0x18
     Right channel volume (?), 0x1A
