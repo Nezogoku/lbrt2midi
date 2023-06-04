@@ -1,4 +1,4 @@
-HEADER + QUARTER EVENT ID'S, 0x24 + (0x04 per ID) Bytes
+HEADER + QUARTER EVENT ID'S, 0x24 + (0x04 per Offset) Bytes
     LBRT, 0x00
     Offset of sequence data, 0x04
     Notated 32nd-notes per quarter note, 0x08
