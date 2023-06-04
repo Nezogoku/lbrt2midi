@@ -55,8 +55,7 @@ MIDI TRACK, Variable Bytes
                     0x05 is Portamento time (Coarse)
                     0x06 is Data entry (Coarse)
                         RPNC 0x00 and RPNF 0x00 is Pitch Bend Sensitivity (Coarse)
-                        RPNC 0x00 and RPNF 0x01 is Master Fine Tuning (Coarse)
-                        RPNC 0x00 and RPNF 0x02 is Master Coarse Tuning (Coarse)
+                        RPNC 0x00 and RPNF 0x02 is Master Coarse Tuning
                         RPNC 0x7F and RPNF 0x7F is RPN NULL (Coarse)
                     0x07 is Channel volume (Coarse) (formerly Main volume)
                     0x08 is Balance (Coarse)
@@ -75,8 +74,7 @@ MIDI TRACK, Variable Bytes
                     0x25 is Portamento time (Fine)
                     0x26 is Data entry (Fine)
                         RPNC 0x00 and RPNF 0x00 is Pitch Bend Sensitivity (Fine)
-                        RPNC 0x00 and RPNF 0x01 is Master Fine Tuning (Fine)
-                        RPNC 0x00 and RPNF 0x02 is Master Coarse Tuning (Fine)
+                        RPNC 0x00 and RPNF 0x01 is Master Fine Tuning
                         RPNC 0x7F and RPNF 0x7F is RPN NULL (Fine)
                     0x27 is Channel volume (Fine)
                     0x28 is Balance (Fine)
