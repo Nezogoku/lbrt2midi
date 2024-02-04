@@ -295,7 +295,7 @@ void midi::optimizeMidi() {
 }
 
 std::string midi::getCsv() { return getCsv(0, 0); }
-std::string midi::getCsv(unsigned mid_size, unsigned char *mid_data) {
+std::string midi::getCsv(unsigned char *mid_data, unsigned mid_size) {
     if (mid_size && mid_data) setMidi(mid_data, mid_size);
 
     std::string csv = "";
@@ -423,7 +423,7 @@ std::string midi::getCsv(unsigned mid_size, unsigned char *mid_data) {
     return csv;
 }
 
-void midi::getMidi(unsigned &mid_size, unsigned char *&mid_data, unsigned char frmt) {
+void midi::getMidi(unsigned char *&mid_data, unsigned &mid_size) {
     if (mid_size && mid_data) setMidi(mid_data, mid_size);
 
     if ((frmt == MIDI_SINGLE_TRACK) && (amnt_trks > 1)) frmt = MIDI_MULTIPLE_TRACK;

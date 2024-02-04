@@ -11,13 +11,14 @@ class midi {
         ~midi() : reset() {}
 
         std::string getCsv();
-        std::string getCsv(unsigned mid_size, unsigned char *mid_data);
-        void getMidi(unsigned &mid_size, unsigned char *&mid_data);
+        std::string getCsv(unsigned char *mid_data, unsigned mid_size);
+        void getMidi(unsigned char *&mid_data, unsigned &mid_size);
         void setMidi(unsigned char *in, unsigned length);
         void setFormat(unsigned char frmt);
         void optimizeMidi();
 
     protected:
+        void reset();
         bool cmpStr(unsigned char *&in0, const char *in1, int length);
         unsigned getInt(unsigned char *&in, int length);
         unsigned getVLV(unsigned char *&in);
@@ -31,7 +32,6 @@ class midi {
         midi_mesg **mmsgs = 0;
 
     private:
-        void reset();
         template<typename... Args>
         std::string formatStr(const char *in, Args... args);
         bool statIsValid(const unsigned char stat);

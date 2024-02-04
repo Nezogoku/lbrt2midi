@@ -1,16 +1,20 @@
-HEADER + QUARTER EVENT ID'S, 0x24 + (0x04 per Offset) Bytes
+LBRT HEADER, 0x10 Bytes
     LBRT, 0x00
     Offset of sequence data, 0x04
-    Notated 32nd-notes per quarter note, 0x08
+    Byte alignment (?), 0x08
     Pulses per quarter note, 0x0C
-    Amount tracks (?), 0x10
-    MIDI format (?), 0x14
-    Unknown (Usually 256), 0x18
-    Amount events, 0x1C
-    Amount quarter event offsets, 0x20
-    List of quarter event offsets, 0x24 {
-        Offset event, 0x00
-    }
+
+LBRT SUB-HEADER, 0x04 Bytes
+    Amount quarter event info lists, 0x00
+
+LBRT QUARTER EVENT INFO LIST, 0x0C Bytes
+    Unknown, 0x00
+    Unknown (Usually 256), 0x04
+    Amount events, 0x08
+
+LBRT QUARTER EVENT ID LIST, 0x04 Bytes
+    Offset of quarter event ID, 0x00
+
 
 EVENT, 0x1C Bytes
     Event ID (0x00 is Start and End of track), 0x00

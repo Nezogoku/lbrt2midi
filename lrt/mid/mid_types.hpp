@@ -83,8 +83,6 @@ struct midi_mval {
     midi_mval& operator=(const midi_mval &m) { copy(m); return *this; }
     midi_mval& operator=(midi_mval &&m) { copy((const midi_mval)m); return *this; }
     
-    const char *get_string() const { return (dtyp > 0 && dtyp < 16 && dsiz) ? (const char*)data : 0; }
-    
     bool empty() const { return dtyp == 0xFF; }
     
     bool operator==(const midi_mval &m) const {
@@ -155,12 +153,6 @@ struct midi_mesg {
     
     midi_mesg& operator=(const midi_mesg &m) { copy(m); return *this; }
     midi_mesg& operator=(midi_mesg &&m) { copy((const midi_mesg)m); return *this; }
-    
-    //To make getting strings easier
-    const char *get_string() const {
-        bool isreset = (mmsg_stat == STAT_RESET);
-        return (isreset) ? std::get<midi_mval>(mmsg_data).get_string() : 0;
-    }
     
     //To make checking existance easier
     bool empty() const {

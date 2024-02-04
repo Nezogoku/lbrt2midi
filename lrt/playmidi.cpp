@@ -16,48 +16,50 @@
 #define TML_STATIC
 
 static tsf *g_TinySoundFont;            // Pointer to Soundfont
-static tml_message *g_MidiMessage;      // Pointer to Midi playback state
+static tml_message **g_MidiMessage;     // Pointer to Midi playback state
 static double g_Msec;                   // Total playback time
 
 ///Callback function called by audio thread
 void AudioCallback(void *data, unsigned char *stream, int len) {
 	//Number of samples to process
 	int SampleBlock,
-		SampleCount = (len / (2 * sizeof(float))); //2 output channels
+		SampleCount = (len / (2 * sizeof(short))); //2 output channels
 
-	for (SampleBlock = TSF_RENDER_EFFECTSAMPLEBLOCK; SampleCount; SampleCount -= SampleBlock, stream += (SampleBlock * (2 * sizeof(float)))) {
-		//Process the MIDI playback, then process TSF_RENDER_EFFECTSAMPLEBLOCK samples at once
+	for (SampleBlock = TSF_RENDER_EFFECTSAMPLEBLOCK; SampleCount; SampleCount -= SampleBlock, stream += (SampleBlock * (2 * sizeof(short)))) {
+		//Process MIDI playback, then process TSF_RENDER_EFFECTSAMPLEBLOCK samples at once
 		if (SampleBlock > SampleCount) SampleBlock = SampleCount;
 
 		//Loop through all MIDI messages until current playback time
-		for (g_Msec += SampleBlock * (1000.0 / 44100.0); g_MidiMessage && g_Msec >= g_MidiMessage->time; g_MidiMessage = g_MidiMessage->next) {
-			switch (g_MidiMessage->type) {
-				case TML_PROGRAM_CHANGE:		//channel program (preset) change
-					tsf_channel_set_presetnumber(g_TinySoundFont, g_MidiMessage->channel, g_MidiMessage->program, 0);
+		for (g_Msec += SampleBlock * (1000.0 / 44100.0); (*g_MidiMessage) && g_Msec >= (*g_MidiMessage)->time; (*g_MidiMessage) = (*g_MidiMessage)->next) {
+			switch ((*g_MidiMessage)->type) {
+				case TML_NOTE_OFF:				// Stop a note
+					tsf_channel_note_off(g_TinySoundFont, (*g_MidiMessage)->channel, (*g_MidiMessage)->key);
 					break;
-				case TML_NOTE_ON:				//play a note
-					tsf_channel_note_on(g_TinySoundFont, g_MidiMessage->channel, g_MidiMessage->key, g_MidiMessage->velocity / 127.0f);
+                case TML_NOTE_ON:				// Play a note
+					tsf_channel_note_on(g_TinySoundFont, (*g_MidiMessage)->channel, (*g_MidiMessage)->key, (*g_MidiMessage)->velocity / 127.0f);
 					break;
-				case TML_NOTE_OFF:				//stop a note
-					tsf_channel_note_off(g_TinySoundFont, g_MidiMessage->channel, g_MidiMessage->key);
+                case TML_CONTROL_CHANGE:		// MIDI controller messages
+					tsf_channel_midi_control(g_TinySoundFont, (*g_MidiMessage)->channel, (*g_MidiMessage)->control, (*g_MidiMessage)->control_value);
 					break;
-				case TML_PITCH_BEND:            //pitch wheel modification
-					tsf_channel_set_pitchwheel(g_TinySoundFont, g_MidiMessage->channel, g_MidiMessage->pitch_bend);
+                case TML_PROGRAM_CHANGE:		// Channel program (preset) change
+					tsf_channel_set_presetnumber(g_TinySoundFont, (*g_MidiMessage)->channel, (*g_MidiMessage)->program, 0);
 					break;
-				case TML_CONTROL_CHANGE:		//MIDI controller messages
-					tsf_channel_midi_control(g_TinySoundFont, g_MidiMessage->channel, g_MidiMessage->control, g_MidiMessage->control_value);
+				case TML_PITCH_BEND:            // Pitch wheel modification
+					tsf_channel_set_pitchwheel(g_TinySoundFont, (*g_MidiMessage)->channel, (*g_MidiMessage)->pitch_bend);
 					break;
+				case TML_SET_TEMPO:             // Tempo change
+                    break;
 			}
 		}
 
-		//Render the block of audio samples in float format
-		tsf_render_float(g_TinySoundFont, (float*)stream, SampleBlock, 0);
+		//Render the block of audio samples in short format
+		tsf_render_short(g_TinySoundFont, (short*)stream, SampleBlock, 0);
 	}
 }
 
 
 playmidi::~playmidi() {
-    if (this->num_seqs) setAmountSequences(0);
+    if (!this->seq_name.empty()) this->seq_name.clear();
     if (this->bank) tsf_close(this->bank);
 
     g_TinySoundFont = NULL;
@@ -65,46 +67,17 @@ playmidi::~playmidi() {
     g_Msec = 0;
 }
 
-playmidi::playmidi() : playmidi(0, false) {}
-playmidi::playmidi(int num_seq) : playmidi(num_seq, false) {}
-playmidi::playmidi(int num_seq, bool isDebug) {
-	this->debug = isDebug;
-	this->num_seqs = 0;
+playmidi::playmidi() {
+    this->debug = false;
+    this->seq_name = "";
     this->bank = NULL;
     this->mesg = 0;
-    this->seq_names = 0;
-    if (num_seq) setAmountSequences(num_seq);
 
     g_TinySoundFont = NULL;
     g_MidiMessage = NULL;
     g_Msec = 0;
 }
 
-
-bool playmidi::hasDuplicate(std::string name) {
-    return std::count(this->seq_names, this->seq_names + this->num_seqs, name);
-}
-
-
-void playmidi::setDebug(bool isDebug) { this->debug = isDebug; }
-
-void playmidi::setAmountSequences(int num_seq) {
-    if (this->mesg) {
-        for (int s = 0; s < this->num_seqs; ++s) {
-            if (this->mesg[s]) tml_free(this->mesg[s]);
-        }
-        delete[] this->mesg; this->mesg = 0;
-        delete[] this->seq_names; this->seq_names = 0;
-    }
-
-    this->num_seqs = num_seq;
-    if (this->num_seqs) {
-        this->seq_names = new std::string[this->num_seqs] {};
-        this->mesg = new tml_message*[this->num_seqs] {};
-
-        for (int s = 0; s < this->num_seqs; ++s) this->mesg[s] = NULL;
-    }
-}
 
 int playmidi::setBank(std::string bank_file) {
 	bool success = true;
@@ -120,7 +93,7 @@ int playmidi::setBank(std::string bank_file) {
 	return success;
 }
 
-int playmidi::setBank(unsigned data_size, unsigned char *data) {
+int playmidi::setBank(unsigned char *data, unsigned data_size) {
 	bool success = true;
 
 	//Load the SoundFont from memory
@@ -134,41 +107,32 @@ int playmidi::setBank(unsigned data_size, unsigned char *data) {
 	return success;
 }
 
-int playmidi::setSequence(std::string midi_file, int s) {
+int playmidi::setSequence(std::string midi_file) {
 	bool success = true;
 
-    std::string tnam = midi_file;
-    tnam = tnam.substr(tnam.find_last_of("\\/") + 1);
-    tnam = tnam.substr(0, tnam.find_last_of('.'));
-
-    if (!hasDuplicate(tnam)) {
-        this->seq_names[s] = tnam;
-
-        //Load midi from file
-        if (this->debug) fprintf(stderr, "\nLoading sequence from a file\n");
-        this->mesg[s] = tml_load_filename(midi_file.c_str());
-        if (!this->mesg[s]) {
-            fprintf(stderr, "Could not load sequence from a file\n");
-            success = false;
-        }
+    this->seq_name = midi_file.substr(midi_file.find_last_of("\\/") + 1);
+    this->seq_name = this->seq_name.substr(0, this->seq_name.find_last_of('.'));
+    
+    //Load midi from file
+    if (this->debug) fprintf(stderr, "\nLoading sequence from a file\n");
+    this->mesg = tml_load_filename(midi_file.c_str());
+    if (!this->mesg) {
+        fprintf(stderr, "Could not load sequence from a file\n");
+        success = false;
     }
 
 	return success;
 }
 
-int playmidi::setSequence(unsigned data_size, unsigned char *data, std::string data_name, int s) {
+int playmidi::setSequence(unsigned char *data, unsigned data_size) {
 	bool success = true;
 
-    if (!hasDuplicate(data_name)) {
-        this->seq_names[s] = data_name;
-
-        //Load midi from file
-        if (this->debug) fprintf(stderr, "\nLoading sequence from memory\n");
-        this->mesg[s] = tml_load_memory(data, data_size);
-        if (!this->mesg[s]) {
-            fprintf(stderr, "Could not load sequence\n");
-            success = false;
-        }
+    //Load midi from file
+    if (this->debug) fprintf(stderr, "\nLoading sequence from memory\n");
+    this->mesg = tml_load_memory(data, data_size);
+    if (!this->mesg) {
+        fprintf(stderr, "Could not load sequence\n");
+        success = false;
     }
 
 	return success;
@@ -181,7 +145,7 @@ int playmidi::setAudioOutput() {
 
 	//Define desired audio output format
 	this->outAudioSpec.freq = 44100;
-	this->outAudioSpec.format = AUDIO_F32;
+	this->outAudioSpec.format = AUDIO_S16;
 	this->outAudioSpec.channels = 2;
 	this->outAudioSpec.samples = 4096;
 	this->outAudioSpec.callback = AudioCallback;
@@ -222,23 +186,17 @@ int playmidi::playSequence() {
 	}
 
 	//Start audio playback
-	fprintf(stdout, "\nPlaying sequences . . .\n");
+	fprintf(stdout, "Playing %s\n", this->seq_names[s].c_str());
 
     SDL_PauseAudio(0);
-    for (int s = 0; s < this->num_seqs; ++s) {
-        if (!this->mesg[s]) continue;
-
-        fprintf(stdout, "Playing %s\n", this->seq_names[s].c_str());
-
-        g_TinySoundFont = tsf_copy(this->bank);
-        g_MidiMessage = this->mesg[s];
-
-        while (g_MidiMessage != NULL) SDL_Delay(50);
-
-        tsf_reset(g_TinySoundFont);
-        g_Msec = 0;
-    }
-    tsf_close(g_TinySoundFont); g_TinySoundFont = NULL;
+    g_MidiMessage = this->mesg;
+    while ((*g_MidiMessage) != NULL) SDL_Delay(50);
+    
+    tsf_reset(g_TinySoundFont);
+    tsf_close(g_TinySoundFont);
+    g_TinySoundFont = NULL;
+    g_Msec = 0;
+    
 
 	return 1;
 }
