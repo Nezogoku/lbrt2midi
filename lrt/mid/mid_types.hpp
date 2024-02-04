@@ -76,12 +76,12 @@ struct midi_mval {
     template <int S>
     midi_mval(uint8_t t, const uint8_t (&d)[S]) : midi_mval(t, S, (const char*)d) {}
     midi_mval(const midi_mval &m) { copy(m); }
-    midi_mval(midi_mval &&m) : midi_mval{m} { m.~midi_mval(); }
+    midi_mval(midi_mval &&m) : midi_mval{m} {}
     
     ~midi_mval() { reset(); }
     
     midi_mval& operator=(const midi_mval &m) { copy(m); return *this; }
-    midi_mval& operator=(midi_mval &&m) { copy((const midi_mval)m); m.~midi_mval(); return *this; }
+    midi_mval& operator=(midi_mval &&m) { copy((const midi_mval)m); return *this; }
     
     const char *get_string() const { return (dtyp > 0 && dtyp < 16 && dsiz) ? (const char*)data : 0; }
     
@@ -151,15 +151,15 @@ struct midi_mesg {
         midi_mesg(t_t, t_s, uint16_t((t_d[0] << 8) | (t_d[1] & 0xFF))) {}
     midi_mesg(uint32_t t_t, uint8_t t_s, midi_mval t_v) : mmsg_time(t_t), mmsg_stat(t_s), mmsg_data(t_v) {}
     midi_mesg(const midi_mesg &m) { copy(m); }
-    midi_mesg(midi_mesg &&m) : midi_mesg{m} { m.~midi_mesg(); }
+    midi_mesg(midi_mesg &&m) : midi_mesg{m} {}
     
     midi_mesg& operator=(const midi_mesg &m) { copy(m); return *this; }
-    midi_mesg& operator=(midi_mesg &&m) { copy((const midi_mesg)m); m.~midi_mesg(); return *this; }
+    midi_mesg& operator=(midi_mesg &&m) { copy((const midi_mesg)m); return *this; }
     
     //To make getting strings easier
     const char *get_string() const {
         bool isreset = (mmsg_stat == STAT_RESET);
-        return (isreset) ? (std::get<midi_mval>(mmsg_data).get_string() : 0;
+        return (isreset) ? std::get<midi_mval>(mmsg_data).get_string() : 0;
     }
     
     //To make checking existance easier
