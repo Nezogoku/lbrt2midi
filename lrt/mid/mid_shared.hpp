@@ -7,8 +7,8 @@
 
 class midi {
     public:
-        midi() : reset() {}
-        ~midi() : reset() {}
+        midi() { reset(); }
+        ~midi() { reset(); }
 
         std::string getCsv();
         std::string getCsv(unsigned char *mid_data, unsigned mid_size);
