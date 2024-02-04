@@ -286,7 +286,9 @@ void midi::optimizeMidi() {
         
         for (auto &t : ttrks) {
             auto has_global = [](std::vector<midi_mesg> &t) -> bool {
-                
+                int num_tnam = std::count_if(t.begin(), t.end(),
+                                            [](const midi_mesg &msg)
+                                            { });
             };
         }
     }

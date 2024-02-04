@@ -27,8 +27,8 @@ class midi {
         void setMidiRaw(unsigned char *in, unsigned length, int track_id);
         
         midi_mthd mhead;
-        unsigned *amnt_mmsg;
-        midi_mesg **mmsgs;
+        unsigned *amnt_mmsg = 0;
+        midi_mesg **mmsgs = 0;
 
     private:
         void reset();
