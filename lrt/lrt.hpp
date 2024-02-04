@@ -3,8 +3,8 @@
 
 #include <string>
 #include "mid/mid_shared.hpp"
+#include "playmidi/playmidi.hpp"
 #include "lrt_types.hpp"
-#include "playmidi.hpp"
 
 
 class lbrt : public midi, public playmidi {
