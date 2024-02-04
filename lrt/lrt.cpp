@@ -3,10 +3,11 @@
 #include <string>
 #include <vector>
 #include "directory.hpp"
-#include "mid_types.hpp"
-#include "mid_cc.hpp"
-#include "mid_meta.hpp"
-#include "mid_shared.hpp"
+#include "mid/mid_types.hpp"
+#include "mid/mid_cc.hpp"
+#include "mid/mid_meta.hpp"
+#include "mid/mid_shared.hpp"
+#include "playmidi/playmidi.hpp"
 #include "lrt_types.hpp"
 #include "lrt.hpp"
 
