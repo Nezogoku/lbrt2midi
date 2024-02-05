@@ -73,8 +73,10 @@ struct midi_mval {
             for (int i = 0; i < s; ++i) data[i] = d[s];
         }
     }
+    midi_mval(uint8_t t, uint32_t s, const uint8_t *d) :
+        midi_mval(t, s, (const char*)d) {}
     template <int S>
-    midi_mval(uint8_t t, const uint8_t (&d)[S]) : midi_mval(t, S, (const char*)d) {}
+    midi_mval(uint8_t t, const uint8_t (&d)[S]) : midi_mval(t, S, d) {}
     midi_mval(const midi_mval &m) { copy(m); }
     midi_mval(midi_mval &&m) : midi_mval{m} {}
     

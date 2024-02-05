@@ -186,10 +186,10 @@ int playmidi::playSequence() {
 	}
 
 	//Start audio playback
-	fprintf(stdout, "Playing %s\n", this->seq_names[s].c_str());
+	fprintf(stdout, "Playing %s\n", this->seq_name.c_str());
 
     SDL_PauseAudio(0);
-    g_MidiMessage = this->mesg;
+    g_MidiMessage = &this->mesg;
     while ((*g_MidiMessage) != NULL) SDL_Delay(50);
     
     tsf_reset(g_TinySoundFont);

@@ -31,8 +31,7 @@ int main(int argc, char *argv[]) {
 
     if (argc < 2) { printOpt(prgm.c_str()); }
     else {
-        lbrt player();
-
+        lbrt player;
         for (int i = 1; i < argc; ++i) {
             std::string tfle, ext, fle;
 

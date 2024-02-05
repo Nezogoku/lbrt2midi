@@ -17,11 +17,11 @@ int lbrt::setLRT(std::string lrt_file) {
     this->seq_name = lrt_file.substr(lrt_file.find_last_of("\\/") + 1);
     this->seq_name = this->seq_name.substr(0, this->seq_name.find_last_of('.'));
     if (this->debug) fprintf(stderr, "    Title of sequence: %s\n", this->seq_name.c_str());
-    
+
     const int MAX_CHANNELS = 16;
     unsigned char *lrt_data = 0, *lrt_start = 0;
     unsigned lrt_size = 0, num_chan = 0;
-    
+
     auto cmp_str = [&](const char *in1, int length) -> bool {
         while ((*(lrt_data++) == (unsigned char)(*(in1++))) && --length);
         return !length;
@@ -32,16 +32,19 @@ int lbrt::setLRT(std::string lrt_file) {
             { out |= (unsigned)*(lrt_data++) << (8 * i); }
         return out;
     };
-    
+    auto make_short = [](unsigned short c0, unsigned short c1) -> unsigned short {
+        return (c0 << 8) | (c1 & 0xFF);
+    };
+
 
     if (!getFileData(lrt_file.c_str(), lrt_data, lrt_size)) {
         fprintf(stderr, "    Unable to open %s\n", this->seq_name.c_str());
         return 0;
     }
     else lrt_start = lrt_data;
-    
+
     lbrt_head hedr;
-    
+
     if (!cmp_str("LBRT", 4)) {
         fprintf(stderr, "    This is not an LBRT file\n");
         return 0;
@@ -54,12 +57,12 @@ int lbrt::setLRT(std::string lrt_file) {
     hedr.val0 = get_int(4);
     hedr.msgs = get_int(4);
     hedr.qrts = get_int(4);
-    
+
     if ((signed)hedr.qrts <= 0) {
         fprintf(stderr, "    There are no quarter events in this LBRT file\n");
         return 0;
     }
-    
+
     unsigned list_qrts[hedr.qrts] {};
 
     if (this->debug) {
@@ -73,8 +76,8 @@ int lbrt::setLRT(std::string lrt_file) {
     }
 
     for (int i = 0; i < hedr.qrts; ++i) {
-        hedr.qids[i] = get_int(4);
-        if (this->debug) fprintf(stderr, "        Quarter event ID %04u: %04u\n", i, hedr.qids[i]);
+        list_qrts[i] = get_int(4);
+        if (this->debug) fprintf(stderr, "        Quarter event ID %04u: %04u\n", i, list_qrts[i]);
     }
 
 
@@ -112,32 +115,32 @@ int lbrt::setLRT(std::string lrt_file) {
             fprintf(stderr, "            Note Off velocity: %u\n", mesgs[e].veloff);
             fprintf(stderr, "            Note Off pitch bend: %u\n", mesgs[e].bndoff);
         }
-        
+
         if (mesgs[e].stat != STAT_RESET && mesgs[e].chn > num_chan) {
             num_chan = mesgs[e].chn;
         }
     }
     num_chan += 1;
-    
-    
+
+
     //For tracking bend values
     unsigned char bends[num_chan] {};
     for (auto b : bends) b = 0x40;
 
-    
+
     //Insert global settings
     if (this->debug) fprintf(stderr, "\n    Set MIDI sequences\n");
     std::vector<midi_mesg> fmsgs;
     fmsgs.emplace_back(0, STAT_RESET, midi_mval(META_TRACK_NAME, this->seq_name.size(), this->seq_name.c_str()));
     fmsgs.emplace_back(0, STAT_RESET, midi_mval(META_TIME_SIGNATURE, {4, 2, hedr.npqn, 8}));
-    fmsgs.emplace_back(0, STAT_CONTROLLER, {CC_REGISTERED_PARAMETER_C, 0});
-    fmsgs.emplace_back(0, STAT_CONTROLLER, {CC_REGISTERED_PARAMETER_F, 0});
-    fmsgs.emplace_back(0, STAT_CONTROLLER, {CC_DATA_ENTRY_C, 2});
-    fmsgs.emplace_back(0, STAT_CONTROLLER, {CC_DATA_ENTRY_F, 0});
-    fmsgs.emplace_back(0, STAT_CONTROLLER, {CC_REGISTERED_PARAMETER_C, 127});
-    fmsgs.emplace_back(0, STAT_CONTROLLER, {CC_REGISTERED_PARAMETER_F, 127});
-    for (int c = 0; c < num_chan; ++c) fmsgs.emplace_back(0, STAT_PROGRAMME_CHANGE | c, c);
-    
+    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_REGISTERED_PARAMETER_C, 0));
+    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_REGISTERED_PARAMETER_F, 0));
+    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_DATA_ENTRY_C, 2));
+    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_DATA_ENTRY_F, 0));
+    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_REGISTERED_PARAMETER_C, 127));
+    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_REGISTERED_PARAMETER_F, 127));
+    for (unsigned char c = 0; c < num_chan; ++c) fmsgs.emplace_back(0, STAT_PROGRAMME_CHANGE | c, c);
+
     //Set final messages
     //Additionally, skip initial tempo event
     for (int e = 1, abs = 0, fabs = 0; e < hedr.msgs; ++e) {
@@ -156,19 +159,19 @@ int lbrt::setLRT(std::string lrt_file) {
             fabs = abs + mesgs[e].tval;
 
             fmsgs.emplace_back(abs, mesgs[e].stat,
-                               {mesgs[e].eval0, mesgs[e].velon});
+                               make_short(mesgs[e].eval0, mesgs[e].velon));
             fmsgs.emplace_back(fabs, STAT_NOTE_OFF | mesgs[e].chn,
-                               {mesgs[e].eval0, mesgs[e].veloff});
+                               make_short(mesgs[e].eval0, mesgs[e].veloff));
 
             if (bends[mesgs[e].chn] != mesgs[e].bndon) {
                 bends[mesgs[e].chn] = mesgs[e].bndon;
                 fmsgs.emplace_back(abs, STAT_PITCH_WHEEL | mesgs[e].chn,
-                                   getPitchBend(bends[mesgs[e].chn]));
+                                   (unsigned short)bends[mesgs[e].chn]);
             }
             if (bends[mesgs[e].chn] != mesgs[e].bndoff) {
                 bends[mesgs[e].chn] = mesgs[e].bndoff;
                 fmsgs.emplace_back(fabs, STAT_PITCH_WHEEL | mesgs[e].chn,
-                                   getPitchBend(bends[mesgs[e].chn]));
+                                   (unsigned short)bends[mesgs[e].chn]);
             }
         }
         else if (mesgs[e].stat < STAT_CONTROLLER) {
@@ -182,18 +185,18 @@ int lbrt::setLRT(std::string lrt_file) {
             if (mesgs[e].cc == CC_PSX_LOOP) {
                 if (mesgs[e].eval0 == CC_PSX_LOOPSTART) {
                     if (this->debug) fprintf(stderr, "        LOOP START EVENT\n");
-                    fmsgs.emplace_back(abs, mesgs[e].stat, {CC_XML_LOOPSTART, CC_XML_LOOPINFINITE});
+                    fmsgs.emplace_back(abs, mesgs[e].stat, make_short(CC_XML_LOOPSTART, CC_XML_LOOPINFINITE));
                     fmsgs.emplace_back(abs, STAT_RESET, midi_mval(META_MARKER, 9, "loopStart"));
                 }
                 else if (mesgs[e].eval0 == CC_PSX_LOOPEND) {
                     if (this->debug) fprintf(stderr, "        LOOP STOP EVENT\n");
-                    fmsgs.emplace_back(abs, mesgs[e].stat, {CC_XML_LOOPEND, CC_XML_LOOPRESERVED});
+                    fmsgs.emplace_back(abs, mesgs[e].stat, make_short(CC_XML_LOOPEND, CC_XML_LOOPRESERVED));
                     fmsgs.emplace_back(fabs, STAT_RESET, midi_mval(META_MARKER, 7, "loopEnd"));
                 }
             }
             else {
                 if (this->debug) fprintf(stderr, "        CC %u EVENT\n", mesgs[e].cc);
-                fmsgs.emplace_back(abs, mesgs[e].stat, {mesgs[e].eval0, mesgs[e].eval1});
+                fmsgs.emplace_back(abs, mesgs[e].stat, make_short(mesgs[e].eval0, mesgs[e].eval1));
             }
         }
         else if (mesgs[e].stat < STAT_CHANNEL_PRESSURE) {
@@ -222,49 +225,51 @@ int lbrt::setLRT(std::string lrt_file) {
         }
     }
 
-    
+
     //Assign MIDI header
     if (this->debug) fprintf(stderr, "\n    Finalize MIDI header\n");
     reset();
     this->mhead.mthd_frmt = hedr.frmt;
     this->mhead.mthd_trks = num_chan + 1;
     this->mhead.mthd_divi = hedr.ppqn & 0x7F;
-    
+
     //Assign MIDI tracks
     this->amnt_mmsg = new unsigned[this->mhead.mthd_trks] {};
     this->mmsgs = new midi_mesg*[this->mhead.mthd_trks] {};
     for (int t = -1; t < num_chan; ++t) {
         std::vector<midi_mesg> tmsgs;
-        
+
         if (t < 0) {
-            auto is_global = [](midi_mesg m) { return m.stat == STAT_RESET; };
-            
+            auto is_global = [](midi_mesg m) { return m.mmsg_stat == STAT_RESET; };
+
             tmsgs.resize(fmsgs.size());
             auto itc = std::copy_if(fmsgs.begin(), fmsgs.end(), tmsgs.begin(), is_global);
             tmsgs.resize(itc - tmsgs.begin());
-            
+
             auto itr = std::remove_if(fmsgs.begin(), fmsgs.end(), is_global);
             fmsgs.resize(itr - fmsgs.begin());
         }
         else {
-            auto is_chan_event = [](midi_mesg m) { return m.chn == t; };
-            
+            auto is_chan_event = [&](midi_mesg m) {
+                return (m.mmsg_stat < STAT_SYSTEM_EXCLUSIVE) && (m.mmsg_stat & 0x0F) == t;
+            };
+
             tmsgs.resize(fmsgs.size());
             auto itc = std::copy_if(fmsgs.begin(), fmsgs.end(), tmsgs.begin(), is_chan_event);
             tmsgs.resize(itc - tmsgs.begin());
-            
+
             auto itr = std::remove_if(fmsgs.begin(), fmsgs.end(), is_chan_event);
             fmsgs.resize(itr - fmsgs.begin());
         }
-        
+
         this->amnt_mmsg[t + 1] = tmsgs.size();
-        this->mmsgs[t + 1] = new midi_mesg[this->amnt_mmsg[t + 1]] {}
+        this->mmsgs[t + 1] = new midi_mesg[this->amnt_mmsg[t + 1]] {};
         std::sort(tmsgs.begin(), tmsgs.end());
         std::move(tmsgs.begin(), tmsgs.end(), this->mmsgs[t + 1]);
     }
     if (!fmsgs.empty()) fmsgs.clear();
-    
-    
+
+
     //Set MIDI to playmidi
     unsigned char *mid_data = 0;
     unsigned mid_size = 0;
@@ -296,7 +301,7 @@ int lbrt::writeMidi() {
     //Set CSV file
     if (this->debug) {
         std::string csv_data = getCsv();
-        
+
         fprintf(stderr, "\n    Writing to CSV file\n");
         if (!createFile((out_file + ".csv").c_str(), csv_data.c_str(), csv_data.length())) {
             fprintf(stderr, "    Unable to save %s to CSV file\n", this->seq_name.c_str());

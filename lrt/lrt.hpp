@@ -9,7 +9,7 @@
 
 class lbrt : public midi, public playmidi {
     public:
-        lbrt() { lrt_path = lrt_name = ""; }
+        lbrt() { lrt_path = ""; }
         int setLRT(std::string lrt_file);
         int writeMidi();
 
