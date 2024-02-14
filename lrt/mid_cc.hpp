@@ -1,10 +1,8 @@
 #ifndef MID_CC_HPP
 #define MID_CC_HPP
 
-#include <cstdint>
-
 ///MIDI Continuous Controllers
-enum MidiController : uint8_t {
+enum MidiController : unsigned char {
     CC_BANK_SELECT_C                    = 0,
     CC_MODULATION_WHEEL_C,
     CC_BREATH_CONTROLLER_C,
@@ -77,7 +75,7 @@ enum MidiController : uint8_t {
 };
 
 ///MIDI Custom Continuous Controller values
-enum MidiCustomController : uint8_t {
+enum MidiCustomController : unsigned char {
     //PSX-style loops
     CC_PSX_LOOP             = 0x63,
     //PSX-style loop values

@@ -2,23 +2,21 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include "playmidi.hpp"
 #include "directory.hpp"
-#include "mid/mid_types.hpp"
-#include "mid/mid_cc.hpp"
-#include "mid/mid_meta.hpp"
-#include "mid/mid_shared.hpp"
-#include "playmidi/playmidi.hpp"
+#include "mid_types.hpp"
+#include "mid_cc.hpp"
+#include "mid_shared.hpp"
 #include "lrt_types.hpp"
 #include "lrt.hpp"
 
 
 int lbrt::setLRT(std::string lrt_file) {
-    this->lrt_path = lrt_file.substr(0, lrt_file.find_last_of("\\/"));
+    this->lrt_path = lrt_file.substr(0, lrt_file.find_last_of("\\/") + 1);
     this->seq_name = lrt_file.substr(lrt_file.find_last_of("\\/") + 1);
     this->seq_name = this->seq_name.substr(0, this->seq_name.find_last_of('.'));
     if (this->debug) fprintf(stderr, "    Title of sequence: %s\n", this->seq_name.c_str());
 
-    const int MAX_CHANNELS = 16;
     unsigned char *lrt_data = 0, *lrt_start = 0;
     unsigned lrt_size = 0, num_chan = 0;
 
@@ -32,16 +30,13 @@ int lbrt::setLRT(std::string lrt_file) {
             { out |= (unsigned)*(lrt_data++) << (8 * i); }
         return out;
     };
-    auto make_short = [](unsigned short c0, unsigned short c1) -> unsigned short {
-        return (c0 << 8) | (c1 & 0xFF);
-    };
-
-
-    if (!getFileData(lrt_file.c_str(), lrt_data, lrt_size)) {
+    
+    
+    if (!getFileData(lrt_file.c_str(), lrt_start, lrt_size)) {
         fprintf(stderr, "    Unable to open %s\n", this->seq_name.c_str());
         return 0;
     }
-    else lrt_start = lrt_data;
+    else lrt_data = lrt_start;
 
     lbrt_head hedr;
 
@@ -122,192 +117,147 @@ int lbrt::setLRT(std::string lrt_file) {
     }
     num_chan += 1;
 
-
     //For tracking bend values
-    unsigned char bends[num_chan] {};
-    for (auto b : bends) b = 0x40;
+    unsigned short bends[num_chan] {};
+    for (auto &b : bends) b = 0x40;
 
+    //Assign MIDI tracks
+    if (!this->mmsgs.empty()) this->mmsgs.clear();
+    std::vector<std::vector<midi_mesg>> tmsgs(num_chan + 1);
+    
+    //Assign MIDI header
+    if (this->debug) fprintf(stderr, "\n    Assign MIDI header\n");
+    this->mhead.mthd_frmt = 1;
+    this->mhead.mthd_trks = num_chan + 1;
+    this->mhead.mthd_divi = hedr.ppqn & 0x7FFF;
 
     //Insert global settings
     if (this->debug) fprintf(stderr, "\n    Set MIDI sequences\n");
-    std::vector<midi_mesg> fmsgs;
-    fmsgs.emplace_back(0, STAT_RESET, midi_mval(META_TRACK_NAME, this->seq_name.size(), this->seq_name.c_str()));
-    fmsgs.emplace_back(0, STAT_RESET, midi_mval(META_TIME_SIGNATURE, {4, 2, hedr.npqn, 8}));
-    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_REGISTERED_PARAMETER_C, 0));
-    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_REGISTERED_PARAMETER_F, 0));
-    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_DATA_ENTRY_C, 2));
-    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_DATA_ENTRY_F, 0));
-    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_REGISTERED_PARAMETER_C, 127));
-    fmsgs.emplace_back(0, STAT_CONTROLLER, make_short(CC_REGISTERED_PARAMETER_F, 127));
-    for (unsigned char c = 0; c < num_chan; ++c) fmsgs.emplace_back(0, STAT_PROGRAMME_CHANGE | c, c);
-
-    //Set final messages
+    tmsgs[0].push_back({0, META_TRACK_NAME, this->seq_name.length(), this->seq_name.c_str()});
+    tmsgs[0].push_back({0, META_TIME_SIGNATURE, {4, 2, hedr.npqn, 8}});
+    
+    //Set messages
     //Additionally, skip initial tempo event
-    for (int e = 1, abs = 0, fabs = 0; e < hedr.msgs; ++e) {
-        //Add delta to absolute time
+    for (int e = 0, abs = 0, fabs = 0; e < hedr.msgs; ++e) {
+        unsigned char &chn = mesgs[e].chn;
+        unsigned short stat = mesgs[e].stat;
+        if (stat == 0x00FF) stat = (stat << 8) | mesgs[e].cc;
+        else stat = stat & 0xFFF0;
+        
         abs += mesgs[e].dtim;
-
-        if (mesgs[e].stat < STAT_NOTE_OFF) {
+        if ((short)stat > 0) fabs = abs + mesgs[e].tval;
+        
+        if (stat == STAT_NONE) {
             //Theoretically shouldn't do anything
             if (this->debug) fprintf(stderr, "        RUNNING STATUS\n");
         }
-        else if (mesgs[e].stat < STAT_NOTE_ON) {
+        else if (stat == STAT_NOTE_OFF) {
             //NOTE_OFF message found with NOTE_ON
         }
-        else if (mesgs[e].stat < STAT_KEY_PRESSURE) {
+        else if (stat == STAT_NOTE_ON) {
             if (this->debug) fprintf(stderr, "        NOTE ON/OFF EVENT\n");
-            fabs = abs + mesgs[e].tval;
+            
+            tmsgs[chn+1].push_back({abs, STAT_NOTE_ON | chn, {mesgs[e].eval0,mesgs[e].velon}});
+            tmsgs[chn+1].push_back({fabs, STAT_NOTE_OFF | chn, {mesgs[e].eval0, mesgs[e].veloff}});
 
-            fmsgs.emplace_back(abs, mesgs[e].stat,
-                               make_short(mesgs[e].eval0, mesgs[e].velon));
-            fmsgs.emplace_back(fabs, STAT_NOTE_OFF | mesgs[e].chn,
-                               make_short(mesgs[e].eval0, mesgs[e].veloff));
-
-            if (bends[mesgs[e].chn] != mesgs[e].bndon) {
-                bends[mesgs[e].chn] = mesgs[e].bndon;
-                fmsgs.emplace_back(abs, STAT_PITCH_WHEEL | mesgs[e].chn,
-                                   (unsigned short)bends[mesgs[e].chn]);
+            /* Either these are NOT pitch bend values or the bending range is different... ugh
+            if (bends[chn] != mesgs[e].bndon) {
+                bends[chn] = mesgs[e].bndon;
+                tmsgs[chn+1].push_back({abs, STAT_PITCH_WHEEL | chn, {bends[chn],bends[chn]>>8}});
             }
-            if (bends[mesgs[e].chn] != mesgs[e].bndoff) {
-                bends[mesgs[e].chn] = mesgs[e].bndoff;
-                fmsgs.emplace_back(fabs, STAT_PITCH_WHEEL | mesgs[e].chn,
-                                   (unsigned short)bends[mesgs[e].chn]);
+            if (bends[chn] != mesgs[e].bndoff) {
+                bends[chn] = mesgs[e].bndoff;
+                tmsgs[chn+1].push_back({fabs, STAT_PITCH_WHEEL | chn, {bends[chn],bends[chn]>>8}});
             }
+            */
         }
-        else if (mesgs[e].stat < STAT_CONTROLLER) {
+        else if (stat == STAT_KEY_PRESSURE) {
             //Never seen KEY PRESSURE, likely never will
             if (this->debug) fprintf(stderr, "        KEY PRESSURE\n");
         }
-        else if (mesgs[e].stat < STAT_PROGRAMME_CHANGE) {
+        else if (stat == STAT_CONTROLLER) {
             //Sequence uses CC 99 for looping
             //Will use CC 116/117 instead
             //Additionally use Final Fantasy style just because
             if (mesgs[e].cc == CC_PSX_LOOP) {
                 if (mesgs[e].eval0 == CC_PSX_LOOPSTART) {
                     if (this->debug) fprintf(stderr, "        LOOP START EVENT\n");
-                    fmsgs.emplace_back(abs, mesgs[e].stat, make_short(CC_XML_LOOPSTART, CC_XML_LOOPINFINITE));
-                    fmsgs.emplace_back(abs, STAT_RESET, midi_mval(META_MARKER, 9, "loopStart"));
+                    tmsgs[chn+1].push_back({abs, STAT_CONTROLLER | chn, {CC_XML_LOOPSTART, CC_XML_LOOPINFINITE}});
+                    tmsgs[0].push_back({abs, META_MARKER, {'l','o','o','p','S','t','a','r','t'}});
                 }
                 else if (mesgs[e].eval0 == CC_PSX_LOOPEND) {
                     if (this->debug) fprintf(stderr, "        LOOP STOP EVENT\n");
-                    fmsgs.emplace_back(abs, mesgs[e].stat, make_short(CC_XML_LOOPEND, CC_XML_LOOPRESERVED));
-                    fmsgs.emplace_back(fabs, STAT_RESET, midi_mval(META_MARKER, 7, "loopEnd"));
+                    tmsgs[chn+1].push_back({abs, STAT_CONTROLLER | chn, {CC_XML_LOOPEND, CC_XML_LOOPRESERVED}});
+                    tmsgs[0].push_back({abs, META_MARKER, {'l','o','o','p','E','n','d'}});
                 }
             }
             else {
                 if (this->debug) fprintf(stderr, "        CC %u EVENT\n", mesgs[e].cc);
-                fmsgs.emplace_back(abs, mesgs[e].stat, make_short(mesgs[e].eval0, mesgs[e].eval1));
+                tmsgs[chn+1].push_back({abs, stat, {mesgs[e].cc, mesgs[e].eval0}});
             }
         }
-        else if (mesgs[e].stat < STAT_CHANNEL_PRESSURE) {
+        else if (stat == STAT_PROGRAMME_CHANGE) {
             //Never seen PROGRAMME CHANGE, likely never will
             if (this->debug) fprintf(stderr, "        PROGRAMME CHANGE\n");
         }
-        else if (mesgs[e].stat < STAT_PITCH_WHEEL) {
+        else if (stat == STAT_CHANNEL_PRESSURE) {
             //Never seen CHANNEL PRESSURE, likely never will
             if (this->debug) fprintf(stderr, "        CHANNEL PRESSURE\n");
         }
-        else if (mesgs[e].stat < STAT_SYSTEM_EXCLUSIVE) {
+        else if (stat == STAT_PITCH_WHEEL) {
             //Never seen PITCH WHEEL message likely found with NOTE_ON
             if (this->debug) fprintf(stderr, "        PITCH WHEEL\n");
         }
-        else {
-            if (mesgs[e].cc == META_END_OF_SEQUENCE) {
-                if (this->debug) fprintf(stderr, "        END OF TRACK\n");
-                fmsgs.emplace_back(fabs, STAT_RESET, midi_mval(META_END_OF_SEQUENCE));
-                break;
-            }
-            else if (mesgs[e].cc == META_TEMPO) {
-                if (this->debug) fprintf(stderr, "        TEMPO CHANGE TO %g BPM\n", 60000000.0 / mesgs[e].tval);
-                unsigned char tmp[] = {mesgs[e].tval>>16, mesgs[e].tval>>8, mesgs[e].tval>>0};
-                fmsgs.emplace_back(abs, STAT_RESET, midi_mval(META_TEMPO, tmp));
-            }
+        else if (stat == META_END_OF_SEQUENCE) {
+            if (this->debug) fprintf(stderr, "        END OF TRACK\n");
+            for (auto &trk : tmsgs) trk.push_back({fabs, META_END_OF_SEQUENCE});
+            break;
+        }
+        else if (stat == META_TEMPO) {
+            if (this->debug) fprintf(stderr, "        TEMPO CHANGE TO %g BPM\n", 60000000.0 / mesgs[e].tval);
+            if (!e) continue;
+            unsigned char tmp[] = {mesgs[e].tval>>16, mesgs[e].tval>>8, mesgs[e].tval>>0};
+            tmsgs[0].push_back({abs, META_TEMPO, tmp});
         }
     }
-
-
-    //Assign MIDI header
-    if (this->debug) fprintf(stderr, "\n    Finalize MIDI header\n");
-    reset();
-    this->mhead.mthd_frmt = hedr.frmt;
-    this->mhead.mthd_trks = num_chan + 1;
-    this->mhead.mthd_divi = hedr.ppqn & 0x7F;
-
-    //Assign MIDI tracks
-    this->amnt_mmsg = new unsigned[this->mhead.mthd_trks] {};
-    this->mmsgs = new midi_mesg*[this->mhead.mthd_trks] {};
-    for (int t = -1; t < num_chan; ++t) {
-        std::vector<midi_mesg> tmsgs;
-
-        if (t < 0) {
-            auto is_global = [](midi_mesg m) { return m.mmsg_stat == STAT_RESET; };
-
-            tmsgs.resize(fmsgs.size());
-            auto itc = std::copy_if(fmsgs.begin(), fmsgs.end(), tmsgs.begin(), is_global);
-            tmsgs.resize(itc - tmsgs.begin());
-
-            auto itr = std::remove_if(fmsgs.begin(), fmsgs.end(), is_global);
-            fmsgs.resize(itr - fmsgs.begin());
+    
+    //Sort and set final messages
+    this->mmsgs.resize(tmsgs.size());
+    for (int t = 0; t < tmsgs.size(); ++t) {
+        auto is_bend = [](const midi_mesg &m) -> bool { return m.mmsg_stat & 0xFFF0 == STAT_PITCH_WHEEL; };
+        
+        if (tmsgs[t].empty()) continue;
+        
+        std::sort(tmsgs[t].begin(), tmsgs[t].end());
+        if (t) {
+            auto &trk = this->mmsgs[t];
+            trk.push_back({0, STAT_PROGRAMME_CHANGE | (t - 1), t - 1});
+            if (std::find_if(trk.begin(), trk.end(), is_bend) != trk.end()) {
+                trk.push_back({0, STAT_CONTROLLER | (t - 1), {CC_REGISTERED_PARAMETER_C, 0}});
+                trk.push_back({0, STAT_CONTROLLER | (t - 1), {CC_REGISTERED_PARAMETER_F, 0}});
+                trk.push_back({0, STAT_CONTROLLER | (t - 1), {CC_DATA_ENTRY_C, 2}});
+                trk.push_back({0, STAT_CONTROLLER | (t - 1), {CC_DATA_ENTRY_F, 0}});
+                trk.push_back({0, STAT_CONTROLLER | (t - 1), {CC_REGISTERED_PARAMETER_C, 127}});
+                trk.push_back({0, STAT_CONTROLLER | (t - 1), {CC_REGISTERED_PARAMETER_F, 127}});
+            }
         }
-        else {
-            auto is_chan_event = [&](midi_mesg m) {
-                return (m.mmsg_stat < STAT_SYSTEM_EXCLUSIVE) && (m.mmsg_stat & 0x0F) == t;
-            };
-
-            tmsgs.resize(fmsgs.size());
-            auto itc = std::copy_if(fmsgs.begin(), fmsgs.end(), tmsgs.begin(), is_chan_event);
-            tmsgs.resize(itc - tmsgs.begin());
-
-            auto itr = std::remove_if(fmsgs.begin(), fmsgs.end(), is_chan_event);
-            fmsgs.resize(itr - fmsgs.begin());
-        }
-
-        this->amnt_mmsg[t + 1] = tmsgs.size();
-        this->mmsgs[t + 1] = new midi_mesg[this->amnt_mmsg[t + 1]] {};
-        std::sort(tmsgs.begin(), tmsgs.end());
-        std::move(tmsgs.begin(), tmsgs.end(), this->mmsgs[t + 1]);
+        this->mmsgs[t].insert(this->mmsgs[t].end(), tmsgs[t].begin(), tmsgs[t].end());
+        tmsgs[t].clear();
     }
-    if (!fmsgs.empty()) fmsgs.clear();
-
-
+    
+    //Remove empty tracks
+    for (auto itr = this->mmsgs.begin(); itr < this->mmsgs.end();) {
+        if ((*itr).empty()) itr = this->mmsgs.erase(itr);
+        else itr += 1;
+    }
+    
+    //Update number tracks
+    this->mhead.mthd_trks = this->mmsgs.size();
+    
     //Set MIDI to playmidi
-    unsigned char *mid_data = 0;
-    unsigned mid_size = 0;
-    getMidi(mid_data, mid_size);
-    setSequence(mid_data, mid_size);
+    getMidi(lrt_start, lrt_size);
+    //Reusing pointer thingy because why not?
+    setSequence(lrt_start, lrt_size);
 
     return 1;
-}
-
-int lbrt::writeMidi() {
-    bool isSuccess = false;
-
-    std::string out_file = this->lrt_path + this->seq_name;
-
-    //Set MIDI file
-    unsigned char *mid_data = 0;
-    unsigned mid_size = 0;
-    getMidi(mid_data, mid_size);
-
-    if (this->debug) fprintf(stderr, "\n    Writing to MIDI file\n");
-    if (!createFile((out_file + ".mid").c_str(), mid_data, mid_size)) {
-        fprintf(stderr, "    Unable to save %s to MIDI file\n", this->seq_name.c_str());
-    }
-    else {
-        fprintf(stdout, "    %s successfully written to MIDI file\n", this->seq_name.c_str());
-        isSuccess = true;
-    }
-
-    //Set CSV file
-    if (this->debug) {
-        std::string csv_data = getCsv();
-
-        fprintf(stderr, "\n    Writing to CSV file\n");
-        if (!createFile((out_file + ".csv").c_str(), csv_data.c_str(), csv_data.length())) {
-            fprintf(stderr, "    Unable to save %s to CSV file\n", this->seq_name.c_str());
-        }
-        else fprintf(stdout, "    %s successfully written to CSV file\n", this->seq_name.c_str());
-    }
-
-    return isSuccess;
 }

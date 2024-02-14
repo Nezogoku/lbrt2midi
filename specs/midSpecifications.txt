@@ -70,6 +70,7 @@ MIDI TRACK, Variable Bytes
                 ~Must end in 0xF7 unless segmented~
                 ~Status byte may end segmented SysEx event~
                 0xSS is Size of message
+                    ~Excluded when transmitted~
                 0xII is Manufacturer ID or Realtime message
                 0x... is Message
             0xF1 is MIDI time code quarter frame (0xF1 0xQQ)
@@ -108,16 +109,25 @@ MIDI TRACK, Variable Bytes
                 ~May end in 0xF7~
                 ~Status byte must end final [segmented] SysEx event~
                 0xSS is Size of message
+                    ~Excluded when transmitted~
                 0xII is Manufacturer ID or Realtime message
                 0x... is Message
             0xF8 is MIDI clock
+                ~Embedded in SysEx event in MIDI files~
             0xF9 is Undefined Realtime message
+                ~Embedded in SysEx event in MIDI files~
             0xFA is MIDI start
+                ~Embedded in SysEx event in MIDI files~
             0xFB is MIDI continue
+                ~Embedded in SysEx event in MIDI files~
             0xFC is MIDI stop
+                ~Embedded in SysEx event in MIDI files~
             0xFD is Undefined Realtime message
+                ~Embedded in SysEx event in MIDI files~
             0xFE is MIDI connection exists
-            0xFF is Meta event (0xFF 0xTT 0xSS 0x...) or Reset (0xFF)
+                ~Embedded in SysEx event in MIDI files~
+            0xFF is Reset (0xFF) or Meta event (0xFF 0xTT 0xSS 0x...)
+                ~Reset embedded in SysEx event in MIDI files~
                 0xTT is Meta type
                     0x00 is Sequence number (0xFF 0x00 0x02 0xIIII)
                         ~Must occur at beginning of track~
@@ -174,10 +184,13 @@ MIDI TRACK, Variable Bytes
                     0x21 is MIDI port (0xFF 0x21 0x01 0xPP)
                         0xPP is MIDI port
                     0x2F is End of track (0xFF 0x2F 0x00)
+                        ~Must occur at end of every track~
                     0x51 is Tempo (0xFF 0x51 0x03 0xTTTTTT)
+                        ~Should occur in first track~
                         ~BPM = (TS Denomintor / 4) * (60000000 / Tempo)~
                         0xTTTTTT is Microseconds per quarter-note
                     0x54 is SMPTE offset (0xFF 0x54 0x05 0xHH 0xMM 0xSS 0xRR 0xSR)
+                        ~Must occur at beginning of track~
                         0xHH is Hours and frame rate (0sshhhhh)
                             ss is Fps
                                 00 = 24Fps
@@ -190,12 +203,14 @@ MIDI TRACK, Variable Bytes
                         0xRR is Frames (0 to Fps-1)
                         0xSR is Sub-frames (0 to 99)
                     0x58 is Time signature (0xFF 0x58 0x04 0xNN 0xXX 0xTT 0xQQ)
+                        ~Should occur in first track~
                         0xNN is Time signature numerator
                         0xXX is Time signature denominator (Base 2 to the 0xXX power)
                         0xTT is Ticks per click
                             ~Clicks per Note = TPC / PPQN~
                         0xQQ is Amount notated 32nd notes per quarter note (Default is 8)
                     0x59 is Key signature (0xFF 0x59 0x02 0xKK 0xSS)
+                        ~Should occur in first track~
                         0xKK is Amount flats(-)/sharps(+) (-7 to 7)
                         0xSS is Scale, 1 byte
                             0 is Major

@@ -2,11 +2,11 @@
 #include <cstdio>
 #include <string>
 #include "playmidi.hpp"
-#include "minisdl_audio.h"
+#include "tsf/minisdl_audio.h"
 #define TSF_IMPLEMENTATION
-#include "tsf.h"
+#include "tsf/tsf.h"
 #define TML_IMPLEMENTATION
-#include "tml.h"
+#include "tsf/tml.h"
 
 #define TSF_STATIC
 #define TML_MEMCPY
@@ -47,8 +47,6 @@ void AudioCallback(void *data, unsigned char *stream, int len) {
 				case TML_PITCH_BEND:            // Pitch wheel modification
 					tsf_channel_set_pitchwheel(g_TinySoundFont, (*g_MidiMessage)->channel, (*g_MidiMessage)->pitch_bend);
 					break;
-				case TML_SET_TEMPO:             // Tempo change
-                    break;
 			}
 		}
 
@@ -61,6 +59,7 @@ void AudioCallback(void *data, unsigned char *stream, int len) {
 playmidi::~playmidi() {
     if (!this->seq_name.empty()) this->seq_name.clear();
     if (this->bank) tsf_close(this->bank);
+    if (this->mesg) tml_free(this->mesg);
 
     g_TinySoundFont = NULL;
     g_MidiMessage = NULL;
@@ -71,7 +70,7 @@ playmidi::playmidi() {
     this->debug = false;
     this->seq_name = "";
     this->bank = NULL;
-    this->mesg = 0;
+    this->mesg = NULL;
 
     g_TinySoundFont = NULL;
     g_MidiMessage = NULL;
@@ -190,10 +189,11 @@ int playmidi::playSequence() {
 
     SDL_PauseAudio(0);
     g_MidiMessage = &this->mesg;
-    while ((*g_MidiMessage) != NULL) SDL_Delay(50);
+    while ((*g_MidiMessage) != NULL) SDL_Delay(1000);
     
     tsf_reset(g_TinySoundFont);
     tsf_close(g_TinySoundFont);
+    tml_free(this->mesg);
     g_TinySoundFont = NULL;
     g_Msec = 0;
     

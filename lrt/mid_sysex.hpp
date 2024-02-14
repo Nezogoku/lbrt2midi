@@ -1,10 +1,8 @@
 #ifndef MID_SYSEX_HPP
 #define MID_SYSEX_HPP
 
-#include <cstdint>
-
 ///MIDI System exclusive manufacturer ID's for MIDI messages
-enum MidiSysexID : uint8_t {
+enum MidiSysexID : unsigned char {
     SEID_COMBINED       = 0,
     //MMA-assigned List
     SEID_EDUCATIONAL    = 125,
@@ -13,7 +11,7 @@ enum MidiSysexID : uint8_t {
 };
 
 ///MIDI Non-real time system exclusive events for MIDI messages
-enum MidiSysexNonreal : uint8_t {
+enum MidiSysexNonreal : unsigned char {
     SENR_SAMPLE_DUMP_HEADER         = 1,
     SENR_SAMPLE_DATA_PACKET,
     SENR_SAMPLE_DUMP_REQUEST,
@@ -35,7 +33,7 @@ enum MidiSysexNonreal : uint8_t {
 };
 
 ///MIDI Non-real time system exclusive sub events for MIDI messages
-enum MidiSysexNonrealSub : uint8_t {
+enum MidiSysexNonrealSub : unsigned char {
     //Time Code (Non-real Time)
     TCN_SPECIAL                         = 0,
     TCN_PUNCH_IN,
@@ -94,7 +92,7 @@ enum MidiSysexNonrealSub : uint8_t {
 };
 
 ///Real time system exclusive events for MIDI messages
-enum MidiSysexReal : uint8_t {
+enum MidiSysexReal : unsigned char {
     SER_TIME_CODE_R                     = 1,
     SER_SHOW_CONTROL,
     SER_NOTATION_INFORMATION,
@@ -110,7 +108,7 @@ enum MidiSysexReal : uint8_t {
 };
 
 ///Real time system exclusive sub events for MIDI messages
-enum MidiSysexRealSub : uint8_t {
+enum MidiSysexRealSub : unsigned char {
     //Time Code (Real Time)
     TCR_FULL                        = 1,
     TCR_USER_BITS,

@@ -2,9 +2,9 @@
 #define PLAYMIDI_HPP
 
 #include <string>
-#include "minisdl_audio.h"
-#include "tsf.h"
-#include "tml.h"
+#include "tsf/minisdl_audio.h"
+#include "tsf/tsf.h"
+#include "tsf/tml.h"
 
 
 class playmidi {

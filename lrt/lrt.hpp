@@ -2,8 +2,8 @@
 #define LRT_HPP
 
 #include <string>
-#include "mid/mid_shared.hpp"
-#include "playmidi/playmidi.hpp"
+#include "playmidi.hpp"
+#include "mid_shared.hpp"
 #include "lrt_types.hpp"
 
 

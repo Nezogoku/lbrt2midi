@@ -64,8 +64,14 @@ int main(int argc, char *argv[]) {
                 }
                 else {
                     if (!player.setLRT(tfle)) continue;
-                    else if (!player.writeMidi()) continue;
-                    else if (!play_result) continue;
+                    
+                    if (!player.getMidi(tfle)) { fprintf(stderr, "Unable to save MIDI file\n"); continue; }
+                    else { fprintf(stdout, "MIDI file successfully saved\n"); }
+                    
+                    if (debug && !player.getCsv(tfle)) { fprintf(stderr, "Unable to save CSV file\n"); continue; }
+                    else if (debug) { fprintf(stdout, "CSV file successfully saved\n"); }
+                    
+                    if (!play_result) continue;
                     else player.playSequence();
                 }
             }
