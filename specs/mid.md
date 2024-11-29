@@ -46,7 +46,7 @@ Format determines format of the file
 * '1' is several vertically dimensional tracks (played simultaneously)
 * '2' is several horizontally dimensional tracks (played sequentially)
 
-Division default unit of delta time
+Division determines default unit of delta time
 * negative value is ticks per SMPTE frame, SMPTE frames per second
     * '0b1ffffffftttttttt'
     * '1' is negative bit
