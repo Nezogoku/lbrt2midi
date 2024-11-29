@@ -1,33 +1,50 @@
-#ifndef LRT_TYPES_HPP
-#define LRT_TYPES_HPP
+#ifndef LBRT_TYPES_HPP
+#define LBRT_TYPES_HPP
 
-///LBRT header
-struct lbrt_head {
-    //const char lbrt[4] {'L','B','R','T'};
-    unsigned soff; // Offset sequence data
-    unsigned npqn; // Notated 32nd-notes per quarter note
-    unsigned ppqn; // Pulses per quarter note
-    unsigned trks; // Amount tracks
-    unsigned frmt; // MIDI format
-    unsigned val0; //
-    unsigned msgs; // Amount events
-    unsigned qrts; // Amount quarter events
+#include <string>
+#include <vector>
+
+///LBRT Message Info
+struct lbrtmesg {
+    signed id;
+    signed dtim;
+    signed tval;
+    signed val0;
+    short val1;
+    short val2;
+    short velon;
+    short bndon;
+    char chn;
+    char stat;
+    char veloff;
+    char bndoff;
+    
+    bool operator==(const lbrtmesg &m) const = default;
 };
 
-///LBRT messages
-struct lbrt_mesg {
-    uint32_t id;    // Quarter event ID
-    uint32_t dtim;  // Delta time
-    uint32_t tval;  // Time value
-    uint32_t eval0; // Event value 1
-    uint16_t eval1; // Event value 2 (?)
-    uint16_t cc;    // Channel controller
-    uint16_t velon; // Channel velocity (on)
-    uint16_t bndon; // Channel pan (on?)
-    uint8_t chn;    // Channel
-    uint8_t stat;   // Status byte
-    uint8_t veloff; // Channel velocity (off?)
-    uint8_t bndoff; // Channel pan (off?)
+///LBRT Track Info
+struct lbrttrck {
+    unsigned id;
+    unsigned unk0;
+    std::vector<lbrtmesg> msgs;
+    std::vector<unsigned> qrts;
+    
+    bool operator==(const lbrttrck &t) const = default;
+};
+
+///LBRT Track Fields
+struct lbrtinfo {
+    //Header
+    //const unsigned lbrt = 0x4C425254;
+    unsigned soff;
+    unsigned tpc;
+    signed ppqn;
+    //Sub Header
+    std::vector<lbrttrck> trks;
+    
+    std::string path, name;
+    
+    bool operator==(const lbrtinfo &b) const = default;
 };
 
 
