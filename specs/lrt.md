@@ -3,15 +3,13 @@ Patapon sequence file
 
 ## Terms
 
+```
 FOURCC      -   four-character code identifying type of data
-
 BYTE        -   data structure of 8 bits
-
 WORD        -   data structure of 16 bits
-
 DWORD       -   data structure of 32 bits
-
 LIST(...)   -   variable-sized list of '...' data
+```
 
 ## .lrt File Structure
 
@@ -19,65 +17,46 @@ LIST(...)   -   variable-sized list of '...' data
 
 ### Header
 
+```
 FOURCC          "LBRT"
-
 DWORD           address to event data
-
 DWORD           MIDI clock ticks per click
-
 DWORD           pulses per quarter-note
+```
 
 ### Sub Header
 
+```
 DWORD           amount tracks
-
 LIST(
-
     DWORD       track ID (?)
-    
     DWORD       unknown (usually '256')
-    
     DWORD       amount events
-    
     DWORD       amount quarter events
-    
     LIST(
-    
         DWORD   address to quarter event
-        
     )
-    
 )
+```
 
 ### Event Data
 
+```
 LIST(
-
     DWORD       event ID
-    
     DWORD       delta time
-    
     DWORD       time value
-    
     DWORD       value 1
-    
     WORD        value 2
-    
     WORD        value 3
-    
     WORD        note on velocity
-    
     WORD        note on value
-    
     BYTE        channel
-    
     BYTE        status
-    
     BYTE        note off velocity
-    
     BYTE        note off value
-    
 )
+```
 
 ## Info on Event Data
 
