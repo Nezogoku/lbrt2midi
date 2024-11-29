@@ -28,7 +28,7 @@ struct mesginfo {
     //To make comparing easier
     auto operator<=>(const mesginfo &m) const {
         if (auto cmp = time <=> m.time; cmp != 0) return cmp;
-        if (auto cmp = get_id(stat) <=> get_id(m.stat); cmp != 0) return cmp;
+        if (auto cmp = get_id() <=> m.get_id(); cmp != 0) return cmp;
         if (auto cmp = chan <=> m.chan; cmp != 0) return cmp;
         if (auto cmp = data <=> m.data; cmp != 0) return cmp;
         return std::strong_ordering::equal;
@@ -44,7 +44,7 @@ struct mesginfo {
     unsigned size(const mesginfo *m = 0) const {
         if (stat == META_NONE || STAT_NONE) return 0;
         
-        unsigned out = 0; auto sid = get_id(stat);
+        unsigned out = 0; auto sid = get_id();
         auto clc_vlv = [](unsigned v0) -> unsigned {
             unsigned out = 0;
             do { out += 1; } while (v0 >>= 7);
@@ -88,7 +88,7 @@ struct mesginfo {
     std::vector<unsigned char> getAll(const mesginfo *m = 0) const {
         if (stat == META_NONE || STAT_NONE) return {};
         
-        std::vector<unsigned char> out; auto sid = get_id(stat);
+        std::vector<unsigned char> out; auto sid = get_id();
         auto set_vlv = [&out](unsigned v0) -> void {
             unsigned v1 = v0 & 0x7F;
             while (v0 >>= 7) { v1 = (v1 << 8) | ((v0 & 0x7F) | 0x80); }
@@ -120,8 +120,8 @@ struct mesginfo {
         char chan;
         std::vector<unsigned char> data;
         
-        unsigned char get_id(const short &s0) const {
-            for (const auto &S : MIDISTATUS_ORDER) { if (s0 == S) return &S - MIDISTATUS_ORDER; }
+        unsigned char get_id() const {
+            for (const auto &S : MIDISTATUS_ORDER) { if (stat == S) return &S - MIDISTATUS_ORDER; }
             return sizeof(MIDISTATUS_ORDER)/sizeof(MidiStatus);
         }
 };
