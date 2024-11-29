@@ -27,14 +27,10 @@ struct mesginfo {
     
     //To make comparing easier
     auto operator<=>(const mesginfo &m) const {
-        if (time < m.time) return std::strong_ordering::less;
-        if (time > m.time) return std::strong_ordering::greater;
-        if (get_id(stat) < get_id(m.stat)) return std::strong_ordering::less;
-        if (get_id(stat) > get_id(m.stat)) return std::strong_ordering::greater;
-        if (chan < m.chan) return std::strong_ordering::less;
-        if (chan > m.chan) return std::strong_ordering::greater;
-        if (data < m.data) return std::strong_ordering::less;
-        if (data > m.data) return std::strong_ordering::greater;
+        if (auto cmp = time <=> m.time; cmp != 0) return cmp;
+        if (auto cmp = get_id(stat) <=> get_id(m.stat); cmp != 0) return cmp;
+        if (auto cmp = chan <=> m.chan; cmp != 0) return cmp;
+        if (auto cmp = data <=> m.data; cmp != 0) return cmp;
         return std::strong_ordering::equal;
     }
     bool operator<(const mesginfo &m) const = default;
