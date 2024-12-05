@@ -1,6 +1,7 @@
 #ifndef MIDI_TYPES_HPP
 #define MIDI_TYPES_HPP
 
+#include <compare>
 #include <vector>
 #include "midi_const.hpp"
 
@@ -21,10 +22,10 @@ struct mesginfo {
         mesginfo{t_t, t_s, t_d, t_Z} {}
     mesginfo(const mesginfo &m) = default;
     mesginfo(mesginfo &&m) = default;
-    
+
     mesginfo& operator=(const mesginfo &m) = default;
     mesginfo& operator=(mesginfo &&m) = default;
-    
+
     //To make comparing easier
     auto operator<=>(const mesginfo &m) const {
         if (auto cmp = time <=> m.time; cmp != 0) return cmp;
@@ -39,22 +40,22 @@ struct mesginfo {
     bool operator<=(const mesginfo &m) const = default;
     bool operator!=(const mesginfo &m) const = default;
     bool operator>=(const mesginfo &m) const = default;
-    
+
     //Get size of current message from pointer to previous message
     unsigned size(const mesginfo *m = 0) const {
         if (stat == META_NONE || STAT_NONE) return 0;
-        
+
         unsigned out = 0; auto sid = get_id();
         auto clc_vlv = [](unsigned v0) -> unsigned {
             unsigned out = 0;
             do { out += 1; } while (v0 >>= 7);
             return out;
         };
-        
+
         //Size of delta time
         out += clc_vlv(time - (!m ? 0 : m[0].getTime()));
         //Size of status if applicable
-        if (m && stat == m[0].getStat() && sid > 0x27 && sid < 0x2F);
+        if (m && stat == m[0].getStat() && chan == m[0].getChan() && sid > 0x27 && sid < 0x2F);
         else out += (stat < 0) ? 2 : 1;
         //Size of size if applicable
         if (stat == STAT_SYSTEM_EXCLUSIVE ||
@@ -87,18 +88,18 @@ struct mesginfo {
     std::vector<unsigned char> getData() const { return data; }
     std::vector<unsigned char> getAll(const mesginfo *m = 0) const {
         if (stat == META_NONE || STAT_NONE) return {};
-        
+
         std::vector<unsigned char> out; auto sid = get_id();
         auto set_vlv = [&out](unsigned v0) -> void {
             unsigned v1 = v0 & 0x7F;
             while (v0 >>= 7) { v1 = (v1 << 8) | ((v0 & 0x7F) | 0x80); }
             do { out.push_back(v1 & 0xFF); v1 >>= 8; } while (out.back() & 0x80);
         };
-        
+
         //Delta time
         set_vlv(time - (!m ? 0 : m[0].getTime()));
         //Status
-        if (m && stat == m[0].getStat() && sid > 0x27 && sid < 0x2F);
+        if (m && stat == m[0].getStat() && chan == m[0].getChan() && sid > 0x27 && sid < 0x2F);
         else {
             if (stat < 0) out.push_back(stat >> 8);
             out.push_back((stat | ((chan < 0) ? 0 : chan)) & 0xFF);
@@ -113,13 +114,13 @@ struct mesginfo {
         out.insert(out.end(), data.begin(), data.end());
         return out;
     }
-    
+
     private:
         unsigned time;
         short stat;
         char chan;
         std::vector<unsigned char> data;
-        
+
         unsigned char get_id() const {
             for (const auto &S : MIDISTATUS_ORDER) { if (stat == S) return &S - MIDISTATUS_ORDER; }
             return sizeof(MIDISTATUS_ORDER)/sizeof(MidiStatus);
@@ -127,6 +128,29 @@ struct mesginfo {
 };
 
 struct midiinfo {
+    ~midiinfo() = default;
+    midiinfo(
+        const unsigned short t_f = MIDI_SINGLE_TRACK, const unsigned short t_t = 0,
+        const unsigned short t_d = 0, const std::vector<std::vector<mesginfo>> t_m = {}
+        ) : fmt(t_f), trk(t_t), div(t_d), msg(t_m) {}
+    midiinfo(
+        const unsigned short t_f, const unsigned short t_t,
+        const unsigned short t_d, const std::vector<mesginfo> t_m
+        ) : midiinfo{t_f, t_t, t_d} { msg.emplace_back(t_m); }
+    midiinfo(
+        const unsigned short t_f, const unsigned short t_t,
+        const unsigned short t_d, const mesginfo *t_m, const unsigned t_Z
+        ) : midiinfo{t_f, t_t, t_d, std::vector<mesginfo> (t_m, t_m + t_Z)} {}
+    midiinfo(
+        const unsigned short t_f, const unsigned short t_t,
+        const unsigned short t_d0, const unsigned short t_d1
+        ) : midiinfo{t_f, t_t, 0x8000 | t_d0 << 8 | t_d1 & 0xFF} {}
+    midiinfo(const midiinfo &m) = default;
+    midiinfo(midiinfo &&m) = default;
+
+    midiinfo& operator=(const midiinfo &m) = default;
+    midiinfo& operator=(midiinfo &&m) = default;
+
     //const unsigned MThd = 0x4D546864;
     //const unsigned size = 0x06;
     unsigned short fmt;
@@ -136,7 +160,7 @@ struct midiinfo {
         //const unsigned MTrk = 0x4D54726B;
         std::vector<mesginfo>
     > msg;
-    
+
     //To make setting division easier
     void setDivision(const short t0, const short t1 = -1) {
         if (t1 & 0xFF00) div = t0 & 0x7FFF;

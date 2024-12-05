@@ -5,17 +5,19 @@
 #include <vector>
 #include "midi_types.hpp"
 
-extern midiinfo unpackMidi(unsigned char *in, const unsigned length);
-extern std::vector<unsigned char> packMidi(const midiinfo &midi);
 
-extern std::vector<mesginfo> unpackMesg(unsigned char *in, const unsigned length);
+inline extern midiinfo mid_inf = {};
+
+void unpackMesg(unsigned char *in, const unsigned length);
+void unpackMidi(unsigned char *in, const unsigned length);
+std::vector<unsigned char> packMidi();
 
 #ifdef CHECKMIDI_IMPLEMENTATION
-extern int checkMidi(midiinfo &midi);
+int checkMidi();
 #endif
 
 #ifdef PACKCSV_IMPLEMENTATION
-extern std::string packCsv(const midiinfo &midi);
+std::string packCsv();
 #endif
 
 

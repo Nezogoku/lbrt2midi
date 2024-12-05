@@ -9,8 +9,6 @@
 #include "playmidi/playmidi_func.hpp"
 #include "printpause.hpp"
 
-#define PROGRAMME_IDENTIFIER "lbrt2midi v7.0"
-
 
 void printOpt(const char *pName) {
     fprintf(stderr, "Usage: %s [-hdcp] [<infile.sf2>] [<infile(s).lrt/mid>]\n\n", pName);
@@ -35,7 +33,7 @@ int main(int argc, char *argv[]) {
     else {
         for (int i = 1; i < argc; ++i) {
             std::string tfle, ext, fle;
-            
+
             tfle = argv[i];
             tfle.erase(std::remove(tfle.begin(), tfle.end(), '\"'), tfle.end());
 
@@ -43,7 +41,7 @@ int main(int argc, char *argv[]) {
             else if (tfle == "-d") { debug = !debug; continue; }
             else if (tfle == "-c") { lrt_midicsv = true; continue; }
             else if (tfle == "-p") { play = true; continue; }
-            
+
             if (debug) fprintf(stderr, "\n");
             if (tfle.rfind(".") == std::string::npos) tfle += ".unkown";
             ext = tfle.substr(tfle.find_last_of('.') + 1);
@@ -75,7 +73,7 @@ int main(int argc, char *argv[]) {
             }
             else if (debug) fprintf(stderr, "This is an unknown file\n");
         }
-        
+
         if (play) {
             if (debug) fprintf(stderr, "\n");
             playmidi_debug = debug;

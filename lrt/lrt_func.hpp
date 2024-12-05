@@ -3,13 +3,18 @@
 
 #include "lrt_types.hpp"
 
+#ifndef PROGRAMME_IDENTIFIER
+#define PROGRAMME_IDENTIFIER "lbrt2midi v7.0"
+#endif
+
+
 inline extern bool lrt_debug = false, lrt_midicsv = false;
-inline extern lbrtinfo lrt_inf = {};
+inline extern lbrtinfo lrt_inf {};
 
-extern void unpackLrt(const char *file = 0);
-extern void unpackLrt(unsigned char *in, const unsigned length);
+void unpackLrt(const char *file = 0);
+void unpackLrt(unsigned char *in, const unsigned length);
 
-extern void extractLrt(const char *folder = 0);
+void extractLrt(const char *folder = 0);
 
 
 #endif

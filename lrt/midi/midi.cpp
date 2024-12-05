@@ -6,22 +6,24 @@
 
 
 ///Unpacks variable MIDI messages from MTRK data
-std::vector<mesginfo> unpackMesg(unsigned char *in, const unsigned length) {
-    if (!in || length < 2) return {};
-    
+void unpackMesg(unsigned char *in, const unsigned length) {
+    mid_inf.msg.emplace_back();
+    if (!in || length < 2) { mid_inf.msg.pop_back(); return; }
+
     const unsigned char *in_end = in + length;
     short t_st = STAT_NONE;
-    std::vector<unsigned char> t_vl;
     unsigned t_ab = 0;
-    std::vector<mesginfo> out;
+    auto &out = mid_inf.msg.back();
 
     auto get_vlv = [&in]() -> unsigned {
         unsigned out = 0;
-        while ((out |= in[0] & 0x7F) && (*(in++) & 0x80)) { out <<= 7; }
+        do { out = (out << 7) | (in[0] & 0x7F); } while(*(in++) & 0x80);
         return out;
     };
-    
+
     while (in < in_end) {
+        std::vector<unsigned char> t_vl;
+        
         //Get delta time
         t_ab += get_vlv();
 
@@ -45,7 +47,7 @@ std::vector<mesginfo> unpackMesg(unsigned char *in, const unsigned length) {
                 break;
             case 0xF0:
                 if (t_st == STAT_RESET) t_st = (t_st << 8) | *(in++);
-                
+
                 if (t_st == STAT_SYSTEM_EXCLUSIVE ||
                     t_st == STAT_SYSTEM_EXCLUSIVE_STOP ||
                     t_st < 0) {
@@ -71,20 +73,16 @@ std::vector<mesginfo> unpackMesg(unsigned char *in, const unsigned length) {
         //Cancel running status if applicable
         if (t_st > STAT_NONE && t_st < STAT_SYSTEM_EXCLUSIVE);
         else t_st = STAT_NONE;
-        
-        t_vl.clear();
     }
-    
-    return out;
 }
 
 ///Unpacks MIDI info from MIDI data
-midiinfo unpackMidi(unsigned char *in, const unsigned length) {
-    if (!in || length < 14) return {};
-    
+void unpackMidi(unsigned char *in, const unsigned length) {
+    mid_inf = {};
+    if (!in || length < 14) return;
+
     const unsigned char *in_end = in + length;
-    midiinfo out;
-    
+
     auto get_int = [&in](unsigned length) -> unsigned {
         unsigned out = 0;
         for (int i = 0; i < length; ++i) {
@@ -92,36 +90,34 @@ midiinfo unpackMidi(unsigned char *in, const unsigned length) {
         }
         return out;
     };
-    
-    if (get_int(4) != FOURCC_MThd) return {};
-    if (get_int(4) != 6) return {};
-    out.fmt = get_int(2);
-    out.trk = get_int(2);
-    out.div = get_int(2);
-    
+
+    if (get_int(4) != FOURCC_MThd) return;
+    if (get_int(4) != 6) return;
+    mid_inf.fmt = get_int(2);
+    mid_inf.trk = get_int(2);
+    mid_inf.div = get_int(2);
+
     while (in < in_end) {
         unsigned t_sz;
-        
+
         if (get_int(4) != FOURCC_MTrk) break;
         t_sz = get_int(4);
         if (in + t_sz > in_end) break;
-        
-        out.msg.emplace_back(unpackMesg(in, t_sz));
+
+        unpackMesg(in, t_sz);
         in += t_sz;
     }
-    
-    return out;
 }
 
 
 ///Packs MIDI data from MIDI info
-std::vector<unsigned char> packMidi(const midiinfo &midi) {
-    if (midi.fmt > MIDI_MULTIPLE_SONG) return {};
-    else if (midi.trk != midi.msg.size()) return {};
-    else if (midi.msg.empty()) return {};
-    
+std::vector<unsigned char> packMidi() {
+    if (mid_inf.fmt > MIDI_MULTIPLE_SONG) return {};
+    else if (mid_inf.trk != mid_inf.msg.size()) return {};
+    else if (mid_inf.msg.empty()) return {};
+
     std::vector<unsigned char> out;
-    
+
     auto set_int = [&out](const unsigned in, int length) -> void {
         while (length--) out.push_back((in >> (8 * length)) & 0xFF);
     };
@@ -144,20 +140,20 @@ std::vector<unsigned char> packMidi(const midiinfo &midi) {
             if (m.getStat() == META_END_OF_SEQUENCE) break;
         }
     };
-    
+
     //Set MIDI header
     set_int(FOURCC_MThd, 4);
     set_int(0x06, 4);
-    set_int(midi.fmt, 2);
-    set_int(midi.trk, 2);
-    set_int(midi.div, 2);
-    
+    set_int(mid_inf.fmt, 2);
+    set_int(mid_inf.trk, 2);
+    set_int(mid_inf.div, 2);
+
     //Set MIDI tracks
-    for (const auto &trk : midi.msg) {
+    for (const auto &trk : mid_inf.msg) {
         set_int(FOURCC_MTrk, 4);
         set_int(get_siz(trk), 4);
         set_dat(trk);
     }
-    
+
     return out;
 }

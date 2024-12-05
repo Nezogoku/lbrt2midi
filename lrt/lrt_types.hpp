@@ -18,7 +18,7 @@ struct lbrtmesg {
     char stat;
     char veloff;
     char bndoff;
-    
+
     bool operator==(const lbrtmesg &m) const = default;
 };
 
@@ -28,7 +28,7 @@ struct lbrttrck {
     unsigned unk0;
     std::vector<lbrtmesg> msgs;
     std::vector<unsigned> qrts;
-    
+
     bool operator==(const lbrttrck &t) const = default;
 };
 
@@ -41,10 +41,14 @@ struct lbrtinfo {
     signed ppqn;
     //Sub Header
     std::vector<lbrttrck> trks;
-    
+
     std::string path, name;
-    
-    bool operator==(const lbrtinfo &b) const = default;
+
+    bool empty() const {
+        return
+            !soff && !tpc && !ppqn &&
+            trks.empty() && path.empty() && name.empty();
+    }
 };
 
 

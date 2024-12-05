@@ -4,13 +4,13 @@
 #include <vector>
 #include "directory.hpp"
 #define PACKCSV_IMPLEMENTATION
-#include "midi/midi_func.hpp"
 #include "midi/midi_const.hpp"
 #include "midi/midi_types.hpp"
-#include "lrt_func.hpp"
+#include "midi/midi_func.hpp"
 #include "lrt_forms.hpp"
 #include "lrt_const.hpp"
 #include "lrt_types.hpp"
+#include "lrt_func.hpp"
 
 
 ///Unpacks LBRT info from LBRT file
@@ -69,31 +69,31 @@ void unpackLrt(unsigned char *in, const unsigned length) {
     lrt_inf.soff = get_int(4);
     lrt_inf.tpc = get_int(4);
     lrt_inf.ppqn = get_int(4);
-    
+
     try {
         lrt_inf.trks.resize(get_int(4));
         if (lrt_inf.trks.empty()) throw std::exception();
-        
+
         if (lrt_debug) {
             fprintf(stderr, "    Sequence data at position: 0x%08X\n", lrt_inf.soff);
             fprintf(stderr, "    Clock ticks per click: %u\n", lrt_inf.tpc);
             fprintf(stderr, "    Pulses per quarter note: %u\n", lrt_inf.ppqn);
             fprintf(stderr, "    Total tracks: %u\n", lrt_inf.trks.size());
         }
-        
+
         for (auto &trk : lrt_inf.trks) {
             trk.id = get_int(4);
             trk.unk0 = get_int(4);
             trk.msgs.resize(get_int(4));
             trk.qrts.resize(get_int(4));
             if (trk.msgs.empty() || trk.qrts.empty()) throw std::exception();
-            
+
             if (lrt_debug) {
                 fprintf(stderr, "        Sequence id: %u\n", trk.id);
                 fprintf(stderr, "        Total events: %u\n", trk.msgs.size());
                 fprintf(stderr, "        Total quarter events: %u\n", trk.qrts.size());
             }
-            
+
             //Set quarter events
             for (auto &q : trk.qrts) {
                 q = get_int(4);
@@ -147,7 +147,7 @@ void unpackLrt(unsigned char *in, const unsigned length) {
 
 ///Extracts MIDI from LBRT info
 void extractLrt(const char *folder) {
-    if (lrt_inf == lbrtinfo{}) return;
+    if (lrt_inf.empty()) return;
     if (folder && folder[0]) lrt_inf.path = folder;
     if (lrt_inf.path.find_last_of("\\/") != lrt_inf.path.size() - 1) lrt_inf.path += "/";
 
@@ -158,27 +158,24 @@ void extractLrt(const char *folder) {
     }
 
     for (const auto &trk : lrt_inf.trks) {
-        midiinfo tmp;
         std::string nam = lrt_inf.name;
         if (lrt_inf.trks.size() > 1) nam += "_" + std::to_string(&trk - lrt_inf.trks.data());
-        
+
         /* //For tracking bend values
         unsigned short bends[16] {};
         for (auto &b : bends) b = 0x40;
         */
-        
+
         //Assign MIDI header
         if (lrt_debug) fprintf(stderr, "    Assign MIDI header\n");
-        tmp.fmt = MIDI_MULTIPLE_TRACK;
-        tmp.trk = 1;
-        tmp.setDivision(lrt_inf.ppqn);
-        tmp.msg.resize(17);
-        
+        mid_inf = {MIDI_MULTIPLE_TRACK, 1, lrt_inf.ppqn};
+        mid_inf.msg.resize(17);
+
         //Insert global settings
         if (lrt_debug) fprintf(stderr, "    Set MIDI tracks\n");
-        tmp.msg[0].emplace_back(0, META_TRACK_NAME, nam.c_str());
-        tmp.msg[0].emplace_back(0, META_TIME_SIGNATURE, (unsigned char[]){4, 2, lrt_inf.tpc, 8});
-        
+        mid_inf.msg[0].emplace_back(0, META_TRACK_NAME, nam.c_str());
+        mid_inf.msg[0].emplace_back(0, META_TIME_SIGNATURE, (unsigned char[]){4, 2, lrt_inf.tpc, 8});
+
         //Set messages
         for (int e = 1, abs = 0, fabs = 0; e < trk.msgs.size(); ++e) {
             auto chn = trk.msgs[e].chn;
@@ -186,7 +183,7 @@ void extractLrt(const char *folder) {
 
             if (stat != STAT_RESET) stat = stat & 0xF0;
             else { stat = (stat << 8) | trk.msgs[e].val2; chn = -1; }
-            
+
             abs += trk.msgs[e].dtim;
             if (stat != STAT_NONE) fabs = abs + trk.msgs[e].tval;
 
@@ -199,22 +196,22 @@ void extractLrt(const char *folder) {
             }
             else if (stat == STAT_NOTE_ON) {
                 if (lrt_debug) fprintf(stderr, "        NOTE ON/OFF EVENT\n");
-                    if (tmp.msg[chn+1].empty()) {
-                    tmp.msg[chn+1].emplace_back(0, STAT_PROGRAMME_CHANGE | chn, (unsigned char[]){chn});
+                    if (mid_inf.msg[chn+1].empty()) {
+                    mid_inf.msg[chn+1].emplace_back(0, STAT_PROGRAMME_CHANGE | chn, (unsigned char[]){chn});
                 }
-                
-                tmp.msg[chn+1].emplace_back(abs, STAT_NOTE_ON | chn, (unsigned char[]){trk.msgs[e].val0,trk.msgs[e].velon});
-                tmp.msg[chn+1].emplace_back(fabs, STAT_NOTE_OFF | chn, (unsigned char[]){trk.msgs[e].val0,trk.msgs[e].veloff});
+
+                mid_inf.msg[chn+1].emplace_back(abs, STAT_NOTE_ON | chn, (unsigned char[]){trk.msgs[e].val0,trk.msgs[e].velon});
+                mid_inf.msg[chn+1].emplace_back(fabs, STAT_NOTE_OFF | chn, (unsigned char[]){trk.msgs[e].val0,trk.msgs[e].veloff});
 
                 /* Either these are NOT pitch bend values or the bending range is different... ugh
                    OR these relate to portamento somehow... double UGH
                 if (bends[chn] != trk.msgs[e].bndon) {
                     bends[chn] = trk.msgs[e].bndon;
-                    tmp.msg[chn+1].push_back({abs, STAT_PITCH_WHEEL | chn, {bends[chn],bends[chn]>>8}});
+                    mid_inf.msg[chn+1].push_back({abs, STAT_PITCH_WHEEL | chn, {bends[chn],bends[chn]>>8}});
                 }
                 if (bends[chn] != trk.msgs[e].bndoff) {
                     bends[chn] = trk.msgs[e].bndoff;
-                    tmp.msg[chn+1].push_back({fabs, STAT_PITCH_WHEEL | chn, {bends[chn],bends[chn]>>8}});
+                    mid_inf.msg[chn+1].push_back({fabs, STAT_PITCH_WHEEL | chn, {bends[chn],bends[chn]>>8}});
                 }
                 */
             }
@@ -229,18 +226,18 @@ void extractLrt(const char *folder) {
                 if (trk.msgs[e].val2 == LBRT_PSX_LOOP) {
                     if (trk.msgs[e].val0 == LBRT_PSX_LOOPSTART) {
                         if (lrt_debug) fprintf(stderr, "        LOOP START EVENT\n");
-                        tmp.msg[0].emplace_back(abs, STAT_CONTROLLER, (unsigned char[]){CC_XML_LOOPSTART, CC_XML_LOOPINFINITE});
-                        tmp.msg[0].emplace_back(abs, META_MARKER, "loopStart");
+                        mid_inf.msg[0].emplace_back(abs, STAT_CONTROLLER, (unsigned char[]){CC_XML_LOOPSTART, CC_XML_LOOPINFINITE});
+                        mid_inf.msg[0].emplace_back(abs, META_MARKER, "loopStart");
                     }
                     else if (trk.msgs[e].val0 == LBRT_PSX_LOOPEND) {
                         if (lrt_debug) fprintf(stderr, "        LOOP STOP EVENT\n");
-                        tmp.msg[0].emplace_back(abs, STAT_CONTROLLER, (unsigned char[]){CC_XML_LOOPEND, CC_XML_LOOPRESERVED});
-                        tmp.msg[0].emplace_back(abs, META_MARKER, "loopEnd");
+                        mid_inf.msg[0].emplace_back(abs, STAT_CONTROLLER, (unsigned char[]){CC_XML_LOOPEND, CC_XML_LOOPRESERVED});
+                        mid_inf.msg[0].emplace_back(abs, META_MARKER, "loopEnd");
                     }
                 }
                 else {
                     if (lrt_debug) fprintf(stderr, "        CC %u EVENT\n", trk.msgs[e].val2);
-                    tmp.msg[chn+1].emplace_back(abs, stat, (unsigned char[]){trk.msgs[e].val2, trk.msgs[e].val0});
+                    mid_inf.msg[chn+1].emplace_back(abs, stat, (unsigned char[]){trk.msgs[e].val2, trk.msgs[e].val0});
                 }
             }
             else if (stat == STAT_PROGRAMME_CHANGE) {
@@ -257,35 +254,35 @@ void extractLrt(const char *folder) {
             }
             else if (stat == META_END_OF_SEQUENCE) {
                 if (lrt_debug) fprintf(stderr, "        END OF TRACK\n");
-                for (auto &tr : tmp.msg) {
+                for (auto &tr : mid_inf.msg) {
                     if (!tr.empty()) tr.emplace_back(fabs, META_END_OF_SEQUENCE);
                 }
                 break;
             }
             else if (stat == META_TEMPO) {
                 if (lrt_debug) fprintf(stderr, "        TEMPO CHANGE TO %g BPM\n", 60000000.0 / trk.msgs[e].tval);
-                tmp.msg[0].emplace_back(
+                mid_inf.msg[0].emplace_back(
                     abs,
                     META_TEMPO,
                     (unsigned char[]){trk.msgs[e].tval>>16, trk.msgs[e].tval>>8, trk.msgs[e].tval>>0}
                 );
             }
         }
-        
+
         //Remove empty tracks
-        std::erase_if(tmp.msg, [](const auto &t) { return t.empty(); });
+        std::erase_if(mid_inf.msg, [](const auto &t) { return t.empty(); });
 
         //Sort tracks
         if (lrt_debug) fprintf(stderr, "    Sort MIDI tracks\n");
-        for (auto &trk : tmp.msg) std::sort(trk.begin(), trk.end());
+        for (auto &trk : mid_inf.msg) std::sort(trk.begin(), trk.end());
 
         //Update number tracks
-        tmp.trk = tmp.msg.size();
+        mid_inf.trk = mid_inf.msg.size();
 
         //Write MIDI to file
         if (true) {
             if (lrt_debug) fprintf(stderr, "    Write MIDI file\n");
-            auto out = packMidi(tmp);
+            auto out = packMidi();
 
             if (!createFile((lrt_inf.path + nam + ".mid").c_str(), out.data(), out.size())) {
                 fprintf(stderr, "    Unable to extract %s.mid\n", nam.c_str());
@@ -296,13 +293,11 @@ void extractLrt(const char *folder) {
         //Write MIDI to CSV if applicable
         if (lrt_midicsv) {
             if (lrt_debug) fprintf(stderr, "    Write MIDICSV file\n");
-            auto out = packCsv(tmp);
+            auto out = packCsv();
 
             if (!createFile((lrt_inf.path + nam + ".csv").c_str(), out.data(), out.size())) {
                 fprintf(stderr, "    Unable to extract %s.csv\n", nam.c_str());
             }
         }
     }
-    
-    lrt_inf = {};
 }

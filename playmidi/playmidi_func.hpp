@@ -7,7 +7,7 @@
 inline extern bool playmidi_debug = false;
 inline extern tmlmsg a_tml {};
 
-extern int playSequence();
+int playSequence();
 
 
 #endif

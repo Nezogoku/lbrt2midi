@@ -1,21 +1,21 @@
 #include <string>
 #include <format>
 #include <vector>
-#include "midi_func.hpp"
 #include "midi_const.hpp"
 #include "midi_types.hpp"
+#include "midi_func.hpp"
 
 
 ///Packs variable messages from MIDI chunk to MIDICSV-style string
-std::string packCsv(const midiinfo &midi) {
+std::string packCsv() {
     std::string csv = "";
     auto set_fstr = [&csv]<typename... T>(std::format_string<T...> in, T&&... args) -> void {
         csv += std::format(in, std::forward<T>(args)...);
     };
 
-    set_fstr("0, 0, HEADER, {0:d}, {1:d}, {2:d}\n", midi.fmt, midi.trk, midi.div);
-    for (const auto &msg : midi.msg) {
-        unsigned id = 1 + (&msg - midi.msg.data());
+    set_fstr("0, 0, HEADER, {0:d}, {1:d}, {2:d}\n", mid_inf.fmt, mid_inf.trk, mid_inf.div);
+    for (const auto &msg : mid_inf.msg) {
+        unsigned id = 1 + (&msg - mid_inf.msg.data());
 
         set_fstr("{0:d}, 0, START_TRACK\n", id);
         for (const auto &m : msg) {

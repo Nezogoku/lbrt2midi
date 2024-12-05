@@ -5,8 +5,8 @@
 #define TML_IMPLEMENTATION
 #include "tsf/tsf.h"
 #include "tsf/tml.h"
-#include "playmidi_types.hpp"
 #include "playmidi_func.hpp"
+#include "playmidi_types.hpp"
 
 static tsf *g_TinySoundFont = NULL;                         // Pointer to Soundfont
 static tml_message *g_MidiMessage = NULL;                   // Pointer to Midi playback state
