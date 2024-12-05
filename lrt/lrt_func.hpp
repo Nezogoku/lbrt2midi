@@ -4,7 +4,7 @@
 #include "lrt_types.hpp"
 
 #ifndef PROGRAMME_IDENTIFIER
-#define PROGRAMME_IDENTIFIER "lbrt2midi v7.0"
+#define PROGRAMME_IDENTIFIER "lbrt2midi v7.1"
 #endif
 
 
