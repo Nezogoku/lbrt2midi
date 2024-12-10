@@ -197,6 +197,7 @@ void extractLrt(const char *folder) {
             else if (stat == STAT_NOTE_ON) {
                 if (lrt_debug) fprintf(stderr, "        NOTE ON/OFF EVENT\n");
                     if (mid_inf.msg[chn+1].empty()) {
+                    mid_inf.msg[chn+1].emplace_back(0, STAT_CONTROLLER | chn, (unsigned char[]){CC_BANK_SELECT_C, 0});
                     mid_inf.msg[chn+1].emplace_back(0, STAT_PROGRAMME_CHANGE | chn, (unsigned char[]){chn});
                 }
 
