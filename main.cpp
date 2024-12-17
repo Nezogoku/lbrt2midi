@@ -5,7 +5,10 @@
 #include <algorithm>
 #include <cstdio>
 #include <string>
+#define SOUNDBANKSGXD_IMPLEMENTATION
+#define PROGRAMME_IDENTIFIER "lbrt2mid v8.0"
 #include "lrt/lrt_func.hpp"
+#include "lrt/sgxd_func.hpp"
 #include "playmidi/playmidi_func.hpp"
 #include "printpause.hpp"
 
@@ -31,8 +34,22 @@ int main(int argc, char *argv[]) {
 
     if (argc < 2) { printOpt(prgm.c_str()); }
     else {
+        std::string sgh, sgb, tfle;
+        auto get_sgd = [&](const char *s0, const char *s1 = 0) -> void {
+            sgd_debug = debug;
+            unpackSgxd(s0, s1);
+
+            std::string pth = s0;
+            pth = pth.substr(0, pth.find_last_of("\\/") + 1);
+            extractSgxd(pth.c_str());
+            
+            a_tml.sf2 = pth + "@" + sgd_inf.file + "/rgnd/" + sgd_inf.file + ".sf2";
+            
+            tfle.clear(); sgh.clear(); sgb.clear();
+        };
+        
         for (int i = 1; i < argc; ++i) {
-            std::string tfle, ext, fle;
+            std::string ext, fle, rot;
 
             tfle = argv[i];
             tfle.erase(std::remove(tfle.begin(), tfle.end(), '\"'), tfle.end());
@@ -43,15 +60,20 @@ int main(int argc, char *argv[]) {
             else if (tfle == "-p") { play = true; continue; }
 
             if (debug) fprintf(stderr, "\n");
-            if (tfle.rfind(".") == std::string::npos) tfle += ".unkown";
-            ext = tfle.substr(tfle.find_last_of('.') + 1);
+            if (tfle.rfind(".") == std::string::npos) tfle += ".unknown";
+            rot = tfle.substr(0, tfle.find_last_of("\\/") + 1);
             fle = tfle.substr(0, tfle.find_last_of('.'));
             fle = fle.substr(fle.find_last_of("\\/") + 1);
+            ext = tfle.substr(tfle.find_last_of('.') + 1);
 
+            if (debug) fprintf(stderr, "File root: %s\n", rot.c_str());
             if (debug) fprintf(stderr, "File base name: %s\n", fle.c_str());
             if (debug) fprintf(stderr, "File extension: %s\n", ext.c_str());
 
-            bool isSF2 = (ext.find("sf2") != std::string::npos),
+            bool isSGD = (ext.find("sgd") != std::string::npos),
+                 isSGH = (ext.find("sgh") != std::string::npos),
+                 isSGB = (ext.find("sgb") != std::string::npos),
+                 isSF2 = (ext.find("sf2") != std::string::npos),
                  isLRT = (ext.find("lrt") != std::string::npos),
                  isMID = (ext.find("mid") != std::string::npos) ||
                          (ext.find("smf") != std::string::npos);
@@ -67,9 +89,29 @@ int main(int argc, char *argv[]) {
                 }
                 else a_tml.mid.push_back(tfle);
             }
-            else if (isSF2) {
-                if (debug) fprintf(stderr, "This is a soundbank file\n");
-                a_tml.sf2 = tfle;
+            else if (isSGD || isSGH || isSGB || isSF2) {
+                if (isSF2) {
+                    if (debug) fprintf(stderr, "This is a soundbank file\n");
+                    a_tml.sf2 = tfle;
+                    continue;
+                }
+                else if (isSGD) {
+                    if (debug) fprintf(stderr, "This is a game data archive file\n");
+                    get_sgd(tfle.c_str());
+                    continue;
+                }
+                else if (isSGH) {
+                    if (debug) fprintf(stderr, "This is a game data archive header file\n");
+                    sgh = tfle;
+                    if (sgb.empty()) continue;
+                }
+                else if (isSGB) {
+                    if (debug) fprintf(stderr, "This is a game data archive body file\n");
+                    sgb = tfle;
+                    if (sgh.empty()) continue;
+                }
+                
+                get_sgd(sgh.c_str(), sgb.c_str());
             }
             else if (debug) fprintf(stderr, "This is an unknown file\n");
         }
