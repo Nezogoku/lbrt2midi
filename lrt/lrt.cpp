@@ -158,6 +158,7 @@ void extractLrt(const char *folder) {
     }
 
     for (const auto &trk : lrt_inf.trks) {
+        int fabs = 0;
         std::string nam = lrt_inf.name;
         if (lrt_inf.trks.size() > 1) nam += "_" + std::to_string(&trk - lrt_inf.trks.data());
 
@@ -177,7 +178,7 @@ void extractLrt(const char *folder) {
         mid_inf.msg[0].emplace_back(0, META_TIME_SIGNATURE, (unsigned char[]){4, 2, lrt_inf.tpc, 8});
 
         //Set messages
-        for (int e = 1, abs = 0, fabs = 0; e < trk.msgs.size(); ++e) {
+        for (int e = 1, abs = 0; e < trk.msgs.size(); ++e) {
             auto chn = trk.msgs[e].chn;
             short stat = trk.msgs[e].stat;
 
@@ -255,9 +256,6 @@ void extractLrt(const char *folder) {
             }
             else if (stat == META_END_OF_SEQUENCE) {
                 if (lrt_debug) fprintf(stderr, "        END OF TRACK\n");
-                for (auto &tr : mid_inf.msg) {
-                    if (!tr.empty()) tr.emplace_back(fabs, META_END_OF_SEQUENCE);
-                }
                 break;
             }
             else if (stat == META_TEMPO) {
@@ -272,6 +270,9 @@ void extractLrt(const char *folder) {
 
         //Remove empty tracks
         std::erase_if(mid_inf.msg, [](const auto &t) { return t.empty(); });
+        
+        //Add end-of-track event to tracks
+        for (auto &trk : mid_inf.msg) trk.emplace_back(fabs, META_END_OF_SEQUENCE);
 
         //Sort tracks
         if (lrt_debug) fprintf(stderr, "    Sort MIDI tracks\n");

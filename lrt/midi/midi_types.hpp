@@ -43,7 +43,7 @@ struct mesginfo {
 
     //Get size of current message from pointer to previous message
     unsigned size(const mesginfo *m = 0) const {
-        if (stat == META_NONE || STAT_NONE) return 0;
+        if (stat == META_NONE || stat == STAT_NONE) return 0;
 
         unsigned out = 0; auto sid = get_id();
         auto clc_vlv = [](unsigned v0) -> unsigned {
@@ -87,7 +87,7 @@ struct mesginfo {
     char getChan() const { return chan; }
     std::vector<unsigned char> getData() const { return data; }
     std::vector<unsigned char> getAll(const mesginfo *m = 0) const {
-        if (stat == META_NONE || STAT_NONE) return {};
+        if (stat == META_NONE || stat == STAT_NONE) return {};
 
         std::vector<unsigned char> out; auto sid = get_id();
         auto set_vlv = [&out](unsigned v0) -> void {
