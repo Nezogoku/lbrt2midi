@@ -307,6 +307,7 @@ void extractSgxd(const char *folder) {
 
                 const auto &sq = sgd_inf.seqd.seqd[g].seq[s];
                 const auto seq = seqdToMidi(g, s);
+                const auto &asd = sq.asmdata;
                 std::string nam, ext;
 
                 if (!sq.name.empty()) nam = sq.name;
@@ -314,16 +315,15 @@ void extractSgxd(const char *folder) {
                     nam.resize(snprintf(nullptr, 0, "seq_%03d_%03d", g, s));
                     snprintf(nam.data(), nam.size() + 1, "seq_%03d_%03d", g, s);
                 }
+                nam = "/" + nam.substr(0, nam.find_first_of("."));
                 ext = (sq.fmt > SEQD_RAWMIDI) ? ".unk" : ".mid";
-                nam = "/" + nam + ext;
 
-                if (!seq.empty() && createFile((out + tmp + nam).c_str(), (unsigned char*)seq.data(), seq.size())) {
-                    fprintf(stdout, "        Extracted %s\n", nam.c_str());
+                if (!seq.empty() && createFile((out + tmp + nam + ext).c_str(), (unsigned char*)seq.data(), seq.size())) {
+                    fprintf(stdout, "        Extracted %s\n", (nam + ext).c_str());
                 }
-                else fprintf(stderr, "        Unable to extract %s\n", nam.c_str());
                 
-                if (!sgd_req.empty() && createFile((out + tmp + nam + ".req").c_str(), sgd_req.c_str(), sgd_req.size())) {
-                    fprintf(stdout, "        Extracted %s.req\n", nam.c_str());
+                if (!asd.empty() && createFile((out + tmp + nam + ".asm").c_str(), asd.c_str(), asd.size())) {
+                    fprintf(stdout, "        Extracted %s.asm\n", nam.c_str());
                 }
             }
         }

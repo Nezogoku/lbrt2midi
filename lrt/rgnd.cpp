@@ -211,7 +211,7 @@ std::vector<unsigned char> rgndToSfbk() {
                         {GN_PITCH_COARSE_TUNE, (ton.noteroot < 0) ? 127 + ton.noteroot : 0}, // Coarse tune
                         {GN_PITCH_FINE_TUNE, ton.notetune}, // Fine tune
                         {GN_SAMPLE_MODE, (wav.loopbeg == wav.loopend) ? SM_NO_LOOP : SM_DEPRESSION_LOOP}, // Sample mode
-                        {GN_SAMPLE_EXCLUSIVE_CLASS, ton.excl}, // Exclusive class
+                        //{GN_SAMPLE_EXCLUSIVE_CLASS, ton.excl}, // Exclusive class
                         {GN_SAMPLE_OVERRIDE_ROOT, (ton.noteroot < 0) ? 127 : ton.noteroot}, // Root key
                         {GN_SAMPLE_ID, (ton.smpid < 0) ? ton.noteroot : ton.smpid}, // Sample ID
                     },

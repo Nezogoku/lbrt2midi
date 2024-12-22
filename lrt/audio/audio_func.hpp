@@ -44,7 +44,7 @@ std::vector<short> decodeOgg(
 #ifdef DECODESONYAT3P_IMPLEMENTATION
 std::vector<short> decodeSonyAt3p(
     unsigned char *in, const unsigned length, const unsigned smpls,
-    const unsigned short align, const unsigned short chns, const unsigned skip = 0
+    const unsigned short align, const unsigned short chns, const unsigned *skip = 0
 );
 #endif
 

@@ -33,7 +33,6 @@
 inline extern bool sgd_debug = false, sgd_text = false;
 inline extern const unsigned char *sgd_beg = 0, *sgd_dat_beg = 0, *sgd_dat_end = 0;
 inline extern sgxdinfo sgd_inf = {};
-inline extern std::string sgd_req = "";
 
 void unpackSgxd(const char *file0, const char *file1 = 0);
 void unpackSgxd(unsigned char *in, const unsigned length);

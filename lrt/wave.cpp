@@ -117,6 +117,7 @@ void unpackWave(unsigned char *in, const unsigned length) {
                 }
                 break;
 #endif
+
 #ifdef DECODESONYADPCM_IMPLEMENTATION
             case SGXD_CODEC_SONY_ADPCM:
             case SGXD_CODEC_SONY_SHORT_ADPCM:
@@ -131,6 +132,7 @@ void unpackWave(unsigned char *in, const unsigned length) {
                 );
                 break;
 #endif
+
 #ifdef DECODESONYAT3P_IMPLEMENTATION
             case SGXD_CODEC_SONY_ATRAC3PLUS:
                 if (sgd_debug) fprintf(stderr, "            Decode Sony Atrac3+\n");
@@ -142,10 +144,11 @@ void unpackWave(unsigned char *in, const unsigned length) {
                     wav_inf.wavl[0].chnk.getArr().data(),
                     wav_inf.wavl[0].chnk.size() - 8, out.wave[w].loopsmp,
                     wav_inf.fmt.align, out.wave[w].chns,
-                    (!wav_inf.fact.smpinfo.empty()) ? wav_inf.fact.smpinfo[0] : 0
+                    (!wav_inf.fact.smpinfo.empty()) ? &wav_inf.fact.smpinfo[0] : 0
                 );
                 break;
 #endif
+
 #ifdef DECODEDOLBYAC3_IMPLEMENTATION
             case SGXD_CODEC_DOLBY_AC_3:
                 if ((sgd_dat_beg + tinf[w][2])[0] == 0x4F &&
@@ -161,6 +164,7 @@ void unpackWave(unsigned char *in, const unsigned length) {
                     break;
                 }
 #endif
+
 #ifdef DECODEOGG_IMPLEMENTATION
             case SGXD_CODEC_OGG_VORBIS:
                 if (sgd_debug) fprintf(stderr, "            Decode Ogg-Vorbis\n");

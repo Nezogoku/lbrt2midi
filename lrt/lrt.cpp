@@ -272,7 +272,8 @@ void extractLrt(const char *folder) {
         std::erase_if(mid_inf.msg, [](const auto &t) { return t.empty(); });
         
         //Add end-of-track event to tracks
-        for (auto &trk : mid_inf.msg) trk.emplace_back(fabs, META_END_OF_SEQUENCE);
+        //Add extra time for those stupid short ones
+        for (auto &trk : mid_inf.msg) trk.emplace_back(fabs + 8000, META_END_OF_SEQUENCE);
 
         //Sort tracks
         if (lrt_debug) fprintf(stderr, "    Sort MIDI tracks\n");

@@ -107,6 +107,7 @@ struct seqdseq {
     short volleft;
     short volright;
     std::vector<unsigned char> data;
+    std::string asmdata;
     
     bool empty() const {
         return
@@ -116,7 +117,8 @@ struct seqdseq {
             !div &&
             !volleft &&
             !volright &&
-            data.empty();
+            data.empty() &&
+            asmdata.empty();
     }
 };
 

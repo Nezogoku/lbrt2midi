@@ -38,8 +38,8 @@ enum SgxdSeqdStatus : char {
     SEQD_BEND,
     SEQD_ADSR_DIRECT,
     SEQD_START                  = -48,
-    SEQD_STOP,
-    SEQD_STOPREL,
+    SEQD_STOP,                          // Instantly stop played sample
+    SEQD_STOPREL,                       // Slowly decrease volume of played sample
     SEQD_GETPORTSTAT,
     SEQD_STARTSMPL,
     SEQD_STARTNOISE,
@@ -67,7 +67,7 @@ enum SgxdSeqdStatus : char {
     SEQD_EOR,
     SEQD_POSITIVE,                      // 0X; 0 is hexstring rep. of positive number, X is size
     SEQD_NEGATIVE,                      // 1X; 1 is hexstring rep. of negative number, X is size
-    SEQD_RANDOM,                        // 2X; 2 is type, X is overall size
+    SEQD_RANDOM,                        // 2X; 2 is random number between range, X is overall size
     SEQD_SYSREG,
     SEQD_REG,
     SEQD_SKIP,

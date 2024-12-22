@@ -65,6 +65,7 @@ struct mesginfo {
         }
         //Size of data
         out += data.size();
+        
         return out;
     }
     //Check if empty
@@ -112,6 +113,7 @@ struct mesginfo {
         }
         //Data
         out.insert(out.end(), data.begin(), data.end());
+        
         return out;
     }
 
