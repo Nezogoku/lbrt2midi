@@ -26,7 +26,7 @@
 #endif
 
 #ifndef PROGRAMME_IDENTIFIER
-#define PROGRAMME_IDENTIFIER "sgd_extractor v5.0"
+#define PROGRAMME_IDENTIFIER "sgd_extractor v5.1"
 #endif
 
 
