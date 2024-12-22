@@ -322,7 +322,7 @@ void extractSgxd(const char *folder) {
                     fprintf(stdout, "        Extracted %s\n", (nam + ext).c_str());
                 }
                 
-                if (!asd.empty() && createFile((out + tmp + nam + ".asm").c_str(), asd.c_str(), asd.size())) {
+                if (sgd_text && !asd.empty() && createFile((out + tmp + nam + ".asm").c_str(), asd.c_str(), asd.size())) {
                     fprintf(stdout, "        Extracted %s.asm\n", nam.c_str());
                 }
             }

@@ -1,3 +1,4 @@
+#include <utility>
 #include <vector>
 #include "midi_func.hpp"
 #include "midi_forms.hpp"
@@ -155,5 +156,5 @@ std::vector<unsigned char> packMidi() {
         set_dat(trk);
     }
 
-    return out;
+    return std::move(out);
 }
