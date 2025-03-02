@@ -8,8 +8,8 @@
 ///MIDI Message Fields
 struct mesginfo {
     ~mesginfo() = default;
-    mesginfo(const unsigned t_t = 0, const short t_s = STAT_NONE) :
-        time(t_t), data() {
+    mesginfo(const unsigned t_t = 0, const short t_s = STAT_NONE, std::initializer_list<unsigned char> t_v = {}) :
+        time(t_t), data(t_v) {
             if (t_s <= STAT_NONE || t_s >= STAT_SYSTEM_EXCLUSIVE) { stat = t_s; chan = -1; }
             else { stat = t_s & 0xF0; chan = t_s & 0x0F; }
         }
@@ -17,9 +17,6 @@ struct mesginfo {
         mesginfo{t_t, t_s} { if (t_z > 0) data.assign(t_d, t_d + t_z); }
     mesginfo(const unsigned t_t, const short t_s, const char *t_d) :
         mesginfo{t_t, t_s} { for(int d = 0; t_d[d]; ++d) data.push_back(t_d[d]); }
-    template <int t_Z>
-    mesginfo(const unsigned t_t, const short t_s, const unsigned char (&t_d)[t_Z]) :
-        mesginfo{t_t, t_s, t_d, t_Z} {}
     mesginfo(const mesginfo &m) = default;
     mesginfo(mesginfo &&m) = default;
 
