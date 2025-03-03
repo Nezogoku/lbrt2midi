@@ -8,7 +8,7 @@ Patapon and common sequences can be listened to directly so long as they have an
 
 Included TinySoundFont library.
 
-Heavily inspired by owocek's LBRTPlayer (now it basically IS the LBRTPlayer, woops...).
+Heavily inspired by owocek's [LBRTPlayer](https://github.com/owodzeg/LBRTPlayer) (now it basically IS the LBRTPlayer, woops...).
 
 ## How to use
 
